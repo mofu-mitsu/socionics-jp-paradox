@@ -5,12 +5,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Sparkles,
   ArrowRight,
-  RotateCcw,
   HelpCircle,
   Download,
   Share2,
   Trash2,
-  Send,
   Copy,
   Check,
   Flower2,
@@ -19,7 +17,11 @@ import {
   Layers,
   Sparkle,
   ArrowLeft,
-  Gamepad2
+  Gamepad2,
+  Eye,
+  BarChart2,
+  Clock,
+  RotateCcw
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import confetti from 'canvas-confetti';
@@ -44,31 +46,66 @@ type Option = {
 type Question = {
   id: string;
   categoryTag?: string;
+  type?: 'standard' | 'game_trash' | 'game_plant';
   text: string;
   options: Option[];
 };
 
 const QUESTIONS: Record<string, Question> = {
+  // --- 心理設問1：状況1 (純粋な意思決定) ---
+  q1: {
+    id: 'q1',
+    categoryTag: '🗑️ 状況1：机の上の散らかり',
+    type: 'standard',
+    text: '明日の予定はありません。\nでも机の上はゴミだらけ。疲れていて片付ける気力はあまりありません。\n現実のあなたなら、どう行動しますか？',
+    options: [
+      {
+        text: 'A：面倒でも片付ける',
+        reasonTag: '【状況1】A：面倒でも片付けるを選択',
+        ieDeltas: { Se: 1.5, Te: 1.0 },
+        positionDeltas: {
+          vulnerable: { Si: 0.5 },
+          creative: { Se: 1.5 },
+          leading: { Te: 1.0 }
+        },
+        jpDelta: { j: 1.5, p: 0 },
+        nextId: 'q1a'
+      },
+      {
+        text: 'B：今日は休む。明日でもいい',
+        reasonTag: '【状況1】B：今日は休むを選択',
+        ieDeltas: { Si: 2.0, Ni: 1.0 },
+        positionDeltas: {
+          leading: { Si: 1.5 },
+          suggestive: { Si: 1.0 },
+          creative: { Ni: 1.0 }
+        },
+        jpDelta: { j: 0, p: 1.5 },
+        nextId: 'q1b'
+      }
+    ]
+  },
   q1a: {
     id: 'q1a',
     categoryTag: '🗑️ 状況1：片付ける動機（なぜ？）',
+    type: 'standard',
     text: '「面倒でも片付ける」を選びましたね。その【根本的な動機】はどれに最も近いですか？',
     options: [
       {
         text: '散らかっている不快な状態が生理的・感覚的に耐えられないから',
-        reasonTag: '理由: 生理的・感覚的快適性の維持を優先',
-        ieDeltas: { Si: 2.5, Fi: 1.0 },
+        reasonTag: '動機: 感覚的不快の解消（Si知覚→Se行動）',
+        ieDeltas: { Si: 2.0, Se: 1.5 },
         positionDeltas: {
-          leading: { Si: 2.0 },
-          demonstrative: { Si: 1.5 },
-          role: { Fi: 1.0 }
+          demonstrative: { Si: 2.0 },
+          activating: { Si: 1.5 },
+          creative: { Se: 1.5 }
         },
         jpDelta: { j: 1.0, p: 0 },
-        nextId: 'q2'
+        nextId: 'q_game_trash'
       },
       {
         text: 'やるべきタスクを放置しておくと、後でもっと面倒・非効率になるから',
-        reasonTag: '理由: 将来の非効率とリスク回避の予測',
+        reasonTag: '動機: 将来の非効率とリスク回避（Te/Ni）',
         ieDeltas: { Te: 2.5, Ni: 1.5 },
         positionDeltas: {
           leading: { Te: 2.0 },
@@ -76,23 +113,23 @@ const QUESTIONS: Record<string, Question> = {
           demonstrative: { Te: 1.5 }
         },
         jpDelta: { j: 1.5, p: 0 },
-        nextId: 'q2'
+        nextId: 'q_game_trash'
       },
       {
         text: '自分の生活空間を自分の意志で即座にコントロール・支配しておきたいから',
-        reasonTag: '理由: 意志力による空間の掌握',
+        reasonTag: '動機: 意志力による環境の即時制御（Se）',
         ieDeltas: { Se: 2.5, Ti: 1.0 },
         positionDeltas: {
           leading: { Se: 2.5 },
-          creative: { Ti: 1.5 },
+          creative: { Se: 1.5 },
           activating: { Se: 1.0 }
         },
         jpDelta: { j: 1.0, p: 0 },
-        nextId: 'q2'
+        nextId: 'q_game_trash'
       },
       {
         text: '自分の決めたルールや秩序・日課を破るのが気持ち悪いから',
-        reasonTag: '理由: 規律と構造ルールの維持',
+        reasonTag: '動機: 日課・構造ルールの維持（Ti）',
         ieDeltas: { Ti: 2.5, Fi: 1.0 },
         positionDeltas: {
           leading: { Ti: 2.0 },
@@ -100,30 +137,31 @@ const QUESTIONS: Record<string, Question> = {
           demonstrative: { Ti: 1.0 }
         },
         jpDelta: { j: 1.5, p: 0 },
-        nextId: 'q2'
+        nextId: 'q_game_trash'
       }
     ]
   },
   q1b: {
     id: 'q1b',
     categoryTag: '🗑️ 状況1：休む動機（なぜ？）',
+    type: 'standard',
     text: '「今日は休む」を選びましたね。その【根本的な動機】はどれに最も近いですか？',
     options: [
       {
         text: '自分の身体感覚・体力の回復を優先するのが最も自然だから',
-        reasonTag: '理由: 体調・身体感覚の保全',
+        reasonTag: '動機: 身体感覚の回復優先（Si主導/暗示）',
         ieDeltas: { Si: 2.5, Fe: 0.5 },
         positionDeltas: {
-          leading: { Si: 2.0 },
-          activating: { Si: 1.5 },
-          vulnerable: { Se: 1.5 }
+          leading: { Si: 2.5 },
+          suggestive: { Si: 2.0 },
+          activating: { Si: 1.5 }
         },
         jpDelta: { j: 0, p: 1.5 },
-        nextId: 'q2'
+        nextId: 'q_game_trash'
       },
       {
         text: 'どうせまた散らかる。今わざわざ疲労を押してやる合理的な価値がないから',
-        reasonTag: '理由: 長期的帰結の見据えと無駄のカット',
+        reasonTag: '動機: 長期的帰結の見据えと無駄のカット（Ni/Te）',
         ieDeltas: { Ni: 2.5, Te: 1.5 },
         positionDeltas: {
           leading: { Ni: 2.0 },
@@ -131,126 +169,241 @@ const QUESTIONS: Record<string, Question> = {
           ignoring: { Ne: 1.0 }
         },
         jpDelta: { j: 0, p: 1.5 },
-        nextId: 'q2'
+        nextId: 'q_game_trash'
       },
       {
         text: '明日困るわけではない。気分や状況の自然な流れに合わせて動けばいいから',
-        reasonTag: '理由: 柔軟な状況追従と自由さ',
+        reasonTag: '動機: 柔軟な自然流動への追従（Ne/Fi）',
         ieDeltas: { Ne: 2.0, Fi: 1.0 },
         positionDeltas: {
           creative: { Ne: 2.0 },
-          suggestive: { Ne: 1.5 },
-          vulnerable: { Te: 1.0 }
+          suggestive: { Ne: 1.5 }
         },
         jpDelta: { j: 0, p: 1.0 },
-        nextId: 'q2'
+        nextId: 'q_game_trash'
       },
       {
         text: '今やっても特別な見返りや得るもの（メリット）がないから',
-        reasonTag: '理由: コストパフォーマンスと利得判断',
+        reasonTag: '動機: コストパフォーマンスと利得（Te）',
         ieDeltas: { Te: 2.0, Ni: 1.0 },
         positionDeltas: {
           creative: { Te: 1.5 },
           ignoring: { Ti: 1.0 }
         },
         jpDelta: { j: 0, p: 1.5 },
+        nextId: 'q_game_trash'
+      }
+    ]
+  },
+
+  // --- 独立設問2：片付けミニゲーム (操作ギミック) ---
+  q_game_trash: {
+    id: 'q_game_trash',
+    categoryTag: '🎮 独立設問：片付け操作ギミック',
+    type: 'game_trash',
+    text: '画面上の机にゴミが散らかっています。\n直感でゴミを何個かタップして片付けてみましょう！（※心理回答とは別の独立操作データです）',
+    options: [
+      {
+        text: '片付け操作を完了して次へ進む',
+        reasonTag: '【ギミック操作完了】片付けギミックの試行',
+        ieDeltas: { Se: 0.3 },
+        positionDeltas: {},
+        jpDelta: { j: 0, p: 0 },
         nextId: 'q2'
       }
     ]
   },
+
+  // --- 心理設問3：状況2 (溜まった食器) ---
   q2: {
     id: 'q2',
     categoryTag: '🍽️ 状況2：溜まった食器',
+    type: 'standard',
     text: '食事が終わりました。食器を洗うのはちょっと面倒。\nただ、シンクにはすでに食器が溜まっています。どうしますか？',
     options: [
       {
         text: '今のうちにすぐ洗う',
-        reasonTag: '【状況2】今のうちにすぐ洗う',
-        ieDeltas: { Te: 1.5, Se: 1.0, Si: 1.0 },
+        reasonTag: '【状況2】今のうちにすぐ洗うを選択',
+        ieDeltas: { Te: 1.5, Se: 1.0 },
         positionDeltas: {
-          leading: { Te: 1.0 },
-          role: { Se: 1.0 },
-          demonstrative: { Si: 1.0 }
+          leading: { Te: 1.5 },
+          role: { Se: 1.0 }
         },
         jpDelta: { j: 1.5, p: 0 },
         nextId: 'q2a'
       },
       {
         text: 'あとでいい。今はゆっくりする',
-        reasonTag: '【状況2】あとでいい。今はゆっくりする',
+        reasonTag: '【状況2】あとでいいを選択',
         ieDeltas: { Si: 2.0, Ni: 1.5 },
         positionDeltas: {
           leading: { Si: 1.5 },
-          vulnerable: { Te: 1.0 },
-          suggestive: { Se: 0.5 }
+          vulnerable: { Te: 1.0 }
         },
         jpDelta: { j: 0, p: 1.5 },
-        nextId: 'q3'
+        nextId: 'q_game_plant'
       }
     ]
   },
   q2a: {
     id: 'q2a',
     categoryTag: '🍽️ 状況2：洗う動機（なぜ？）',
-    text: '「今のうちにすぐ洗う」を選んだ理由は何ですか？',
+    type: 'standard',
+    text: '「今のうちにすぐ洗う」を選んだ主な理由は何ですか？',
     options: [
       {
         text: '溜まった汚れの匂いや見た目の不快感が我慢できないから',
-        reasonTag: '理由: 感覚的不快の解消',
+        reasonTag: '理由: 感覚的不快の解消（Si）',
         ieDeltas: { Si: 2.0, Fi: 1.0 },
-        positionDeltas: { leading: { Si: 1.5 }, demonstrative: { Si: 1.5 } },
+        positionDeltas: { demonstrative: { Si: 1.5 }, activating: { Si: 1.5 } },
         jpDelta: { j: 1.0, p: 0 },
-        nextId: 'q3'
+        nextId: 'q_game_plant'
       },
       {
         text: '次に料理・作業する時の効率を落としたくないから',
-        reasonTag: '理由: 次の作業効率維持',
+        reasonTag: '理由: 次の作業効率維持（Te）',
         ieDeltas: { Te: 2.5, Ni: 1.0 },
         positionDeltas: { leading: { Te: 2.0 }, creative: { Ni: 1.0 } },
         jpDelta: { j: 1.5, p: 0 },
+        nextId: 'q_game_plant'
+      },
+      {
+        text: 'あとで洗わないといけないから、先に洗ってリラックスしたい',
+        reasonTag: '理由: 先払いの義務完了による精神的リラックス（Te/Si）',
+        ieDeltas: { Te: 2.0, Si: 1.5 },
+        positionDeltas: { leading: { Te: 1.5 }, suggestive: { Si: 1.5 } },
+        jpDelta: { j: 1.5, p: 0 },
+        nextId: 'q_game_plant'
+      },
+      {
+        text: '洗わないと汚れが落ちにくくなるかもしれないから',
+        reasonTag: '理由: 時間経過による状態悪化リスクの防止（Ni/Te）',
+        ieDeltas: { Ni: 2.0, Te: 1.5 },
+        positionDeltas: { leading: { Ni: 1.5 }, creative: { Te: 1.5 } },
+        jpDelta: { j: 1.5, p: 0 },
+        nextId: 'q_game_plant'
+      }
+    ]
+  },
+
+  // --- 独立設問4：Ni未来予測ミニゲーム (植物の未来観察) ---
+  q_game_plant: {
+    id: 'q_game_plant',
+    categoryTag: '🔮 独立設問：未来観察ギミック',
+    type: 'game_plant',
+    text: '🌱 小さな鉢植えがあります。「最近、葉っぱが少しずつ黄色くなっている…」\n時間を進めて、未来の流れを観察してみましょう。',
+    options: [
+      {
+        text: '未来の観察を完了して、深掘り質問へ進む',
+        reasonTag: '【ギミック操作完了】植物の未来観察試行',
+        ieDeltas: { Ni: 0.3 },
+        positionDeltas: {},
+        jpDelta: { j: 0, p: 0 },
+        nextId: 'q_ni_deep'
+      }
+    ]
+  },
+
+  // --- 心理設問5：未来観察後の介入姿勢深掘り ---
+  q_ni_deep: {
+    id: 'q_ni_deep',
+    categoryTag: '🔮 未来への介入姿勢（なぜ？）',
+    type: 'standard',
+    text: '「時間の経過とともに問題が悪化しそうだ」という未来の流れが見えたとき、あなたはどう反応しますか？',
+    options: [
+      {
+        text: '「このままだと問題になる」と分かったので、今のうちに速やかに現在へ介入・対処する',
+        reasonTag: '反応: 未来予測からの現在への構造・行動介入（LII/LIE/EIE型：Ni証明/補助＋現在構造制御）',
+        ieDeltas: { Ni: 2.0, Te: 1.5, Ti: 1.5 },
+        positionDeltas: {
+          demonstrative: { Ni: 2.0 },
+          leading: { Ti: 1.5, Te: 1.5 },
+          creative: { Ne: 1.0 }
+        },
+        jpDelta: { j: 1.5, p: 0 },
+        nextId: 'q3'
+      },
+      {
+        text: '「そういう流れ・結末になるだろう」と分かったが、そのまま様子や展開を見守る',
+        reasonTag: '反応: 時間的流動の受容と非介入（ILI/IEI型：Ni主導＋非介入流動）',
+        ieDeltas: { Ni: 3.0, Se: 0.5 },
+        positionDeltas: {
+          leading: { Ni: 2.5 },
+          vulnerable: { Se: 1.5 },
+          suggestive: { Se: 1.0 }
+        },
+        jpDelta: { j: 0, p: 2.0 },
+        nextId: 'q3'
+      },
+      {
+        text: 'もっと別の可能性や情報がないか、さらに観察・検討してから判断する',
+        reasonTag: '反応: 可能性のさらなる探求（Ne/Ti）',
+        ieDeltas: { Ne: 2.5, Ti: 1.5 },
+        positionDeltas: {
+          leading: { Ne: 2.0 },
+          creative: { Ti: 1.5 }
+        },
+        jpDelta: { j: 0, p: 1.5 },
+        nextId: 'q3'
+      },
+      {
+        text: 'そもそも遠い未来の心配よりも、今この瞬間の感覚や状況に対応する',
+        reasonTag: '反応: 現在感覚・現場主導（Si/Se）',
+        ieDeltas: { Si: 2.0, Se: 1.5 },
+        positionDeltas: {
+          leading: { Si: 2.0 },
+          creative: { Se: 1.5 }
+        },
+        jpDelta: { j: 0, p: 1.0 },
         nextId: 'q3'
       }
     ]
   },
+
+  // --- 心理設問6：部屋の散らかり ---
   q3: {
     id: 'q3',
     categoryTag: '🛏️ 状況3：部屋の散らかり',
+    type: 'standard',
     text: '明日誰かが来るわけではありません。\nでも部屋の床に服や荷物が散らばっています。どうしますか？',
     options: [
       {
         text: '気になって落ち着かないので片付ける',
-        reasonTag: '【状況3】気になって落ち着かないので片付ける',
-        ieDeltas: { Fi: 1.5, Se: 1.0, Si: 1.5 },
+        reasonTag: '【状況3】気になって落ち着かないので片付けるを選択',
+        ieDeltas: { Fi: 1.5, Se: 1.0, Si: 1.0 },
         positionDeltas: {
-          leading: { Fi: 1.5, Si: 1.0 },
-          role: { Ti: 1.0 }
+          leading: { Fi: 1.5 },
+          role: { Ti: 1.0 },
+          demonstrative: { Si: 1.0 }
         },
         jpDelta: { j: 1.5, p: 0 },
         nextId: 'q4'
       },
       {
         text: '生活できるなら気にならない。放置する',
-        reasonTag: '【状況3】生活できるなら気にならない。放置する',
-        ieDeltas: { Ni: 2.0, Ne: 1.5, Ti: 1.0 },
+        reasonTag: '【状況3】生活できるなら放置を選択',
+        ieDeltas: { Ni: 2.0, Ne: 1.5 },
         positionDeltas: {
           leading: { Ni: 1.5 },
-          vulnerable: { Se: 1.5 },
-          ignoring: { Si: 1.0 }
+          vulnerable: { Se: 1.5 }
         },
         jpDelta: { j: 0, p: 1.5 },
         nextId: 'q4'
       }
     ]
   },
+
+  // --- 心理設問7：服装選択 ---
   q4: {
     id: 'q4',
     categoryTag: '👔 服装選択',
+    type: 'standard',
     text: '明日、私服自由の場所に行く予定があります。\nどちらの服を選んで着ていきますか？',
     options: [
       {
         text: '少し動きにくくても、外見の印象・魅力・存在感を高める服',
         reasonTag: '【服装】外見の魅力と印象優先',
-        ieDeltas: { Se: 2.5, Fe: 2.0, Fi: 1.0 },
+        ieDeltas: { Se: 2.5, Fe: 2.0 },
         positionDeltas: {
           leading: { Se: 2.0, Fe: 1.5 },
           creative: { Fi: 1.0 }
@@ -261,25 +414,27 @@ const QUESTIONS: Record<string, Question> = {
       {
         text: '見た目はシンプルだが、非常に着心地がよく体と感覚が楽な服',
         reasonTag: '【服装】身体的快適さ優先',
-        ieDeltas: { Si: 2.5, Ti: 1.0, Ne: 0.5 },
+        ieDeltas: { Si: 2.5, Ti: 1.0 },
         positionDeltas: {
           leading: { Si: 2.5 },
-          demonstrative: { Si: 1.5 },
-          creative: { Te: 1.0 }
+          demonstrative: { Si: 1.5 }
         },
         jpDelta: { j: 0, p: 1.5 },
         nextId: 'q5'
       }
     ]
   },
+
+  // --- 心理設問8：理論の誤解への反応 ---
   q5: {
     id: 'q5',
-    categoryTag: '💡 理論の誤解への反応',
+    categoryTag: '💡 理論誤解への反応',
+    type: 'standard',
     text: '「SEIとISFJはどちらもSiだからほぼ同じだ」という浅い理論的誤解を見かけました。あなたならどう反応しますか？',
     options: [
       {
         text: '構造的な矛盾が許せない。正しい定義と論理体系の違いを明確に説明したくなる',
-        reasonTag: '【理論誤解】論理的構造と分類の正確性を説明',
+        reasonTag: '【理論誤解】正しい論理体系と構造の解説欲求（Ti/Ne）',
         ieDeltas: { Ti: 3.0, Ne: 1.5 },
         positionDeltas: {
           leading: { Ti: 2.5 },
@@ -291,32 +446,33 @@ const QUESTIONS: Record<string, Question> = {
       },
       {
         text: '好きに誤解していればいい。無知な者が将来的に勝手に困るだけだと静観する',
-        reasonTag: '【理論誤解】将来帰結を見越して放置',
+        reasonTag: '【理論誤解】将来帰結を見越して放置（Ni/Te）',
         ieDeltas: { Ni: 2.5, Te: 1.5 },
         positionDeltas: {
           leading: { Ni: 2.5 },
-          creative: { Te: 1.0 },
-          ignoring: { Ne: 1.0 }
+          creative: { Te: 1.0 }
         },
         jpDelta: { j: 0, p: 1.5 },
         nextId: 'q6'
       },
       {
         text: '誤解が広まることで当事者の人々が正しく理解されず可哀想だと感じる',
-        reasonTag: '【理論誤解】人間の感情と人間関係への影響を心配',
+        reasonTag: '【理論誤解】人々の感情と関係への懸念（Fi/Fe）',
         ieDeltas: { Fi: 2.5, Fe: 2.0 },
         positionDeltas: {
-          leading: { Fi: 2.0, Fe: 1.5 },
-          creative: { Ne: 1.0 }
+          leading: { Fi: 2.0, Fe: 1.5 }
         },
         jpDelta: { j: 1.0, p: 0 },
         nextId: 'q6'
       }
     ]
   },
+
+  // --- 心理設問9：締め切りと着手 ---
   q6: {
     id: 'q6',
     categoryTag: '⏳ 締め切りと着手',
+    type: 'standard',
     text: '明日までに完了すべき重要な課題があります。まだ時間は十分にあります。',
     options: [
       {
@@ -328,7 +484,7 @@ const QUESTIONS: Record<string, Question> = {
           role: { Se: 1.0 }
         },
         jpDelta: { j: 2.0, p: 0 },
-        nextId: 'q6a'
+        nextId: 'result'
       },
       {
         text: 'まだ余裕はある。今すぐ着手せず最適なタイミングまで待つ',
@@ -339,64 +495,6 @@ const QUESTIONS: Record<string, Question> = {
           vulnerable: { Te: 1.0 }
         },
         jpDelta: { j: 0, p: 2.0 },
-        nextId: 'q6b'
-      }
-    ]
-  },
-  q6a: {
-    id: 'q6a',
-    categoryTag: '⏳ 早期完了の理由（なぜ？）',
-    text: '「今のうちに終わらせる」を選んだ決定的な理由は何ですか？',
-    options: [
-      {
-        text: '未完了のものが残っている状態そのものが精神的にソワソワして落ち着かないから',
-        reasonTag: '理由: 未完了の不快感解消',
-        ieDeltas: { Fi: 1.5, Ti: 1.5 },
-        positionDeltas: {
-          leading: { Fi: 1.5 },
-          role: { Ti: 1.0 }
-        },
-        jpDelta: { j: 1.5, p: 0 },
-        nextId: 'result'
-      },
-      {
-        text: '後から不確定な割り込み事態が発生するリスクを事前に排除したいから',
-        reasonTag: '理由: 不確実性リスクの事前排除',
-        ieDeltas: { Te: 2.5, Ni: 1.5 },
-        positionDeltas: {
-          leading: { Te: 2.5 },
-          creative: { Ni: 1.5 }
-        },
-        jpDelta: { j: 1.5, p: 0 },
-        nextId: 'result'
-      }
-    ]
-  },
-  q6b: {
-    id: 'q6b',
-    categoryTag: '⏳ 直前着手の理由（なぜ？）',
-    text: '「直前まで待つ」を選んだ決定的な理由は何ですか？',
-    options: [
-      {
-        text: '締め切り間際になれば集中力が最大化し、最も高効率で終わるから',
-        reasonTag: '理由: ギリギリでのエネルギー集中と高効率',
-        ieDeltas: { Ni: 2.5, Te: 1.5 },
-        positionDeltas: {
-          leading: { Ni: 2.0 },
-          creative: { Te: 1.5 }
-        },
-        jpDelta: { j: 0, p: 2.0 },
-        nextId: 'result'
-      },
-      {
-        text: '今この瞬間にわざわざ疲労を押して取り組む必然性がないから',
-        reasonTag: '理由: 現在の省エネと快適優先',
-        ieDeltas: { Si: 2.0, Ne: 1.0 },
-        positionDeltas: {
-          leading: { Si: 1.5 },
-          vulnerable: { Se: 1.5 }
-        },
-        jpDelta: { j: 0, p: 1.5 },
         nextId: 'result'
       }
     ]
@@ -419,15 +517,21 @@ export default function App() {
   const [rawMbtiInput, setRawMbtiInput] = useState('');
   const [detectedMbti, setDetectedMbti] = useState<string | null>(null);
 
-  // 片付けギミック状態 (Q1内専用)
-  const [q1TrashItems, setQ1TrashItems] = useState([
-    { id: 1, icon: '📄', label: '古い資料', x: 22, y: 35 },
+  // 芋虫ぷにっとリアクション状態
+  const [caterpillarReaction, setCaterpillarReaction] = useState(false);
+
+  // 片付けギミック状態 (Q_game_trash 専用)
+  const [trashItems, setTrashItems] = useState([
+    { id: 1, icon: '📄', label: '古い資料', x: 20, y: 35 },
     { id: 2, icon: '🥫', label: '空き缶', x: 75, y: 25 },
-    { id: 3, icon: '🍟', label: '食べカス', x: 48, y: 65 },
-    { id: 4, icon: '📝', label: 'メモ用紙', x: 82, y: 70 },
-    { id: 5, icon: '🧃', label: '紙パック', x: 18, y: 72 }
+    { id: 3, icon: '🍟', label: '食べカス', x: 45, y: 65 },
+    { id: 4, icon: '📝', label: 'メモ用紙', x: 80, y: 70 },
+    { id: 5, icon: '🧃', label: '紙パック', x: 18, y: 70 }
   ]);
-  const [q1GameCleanedCount, setQ1GameCleanedCount] = useState(0);
+  const [cleanedCount, setCleanedCount] = useState(0);
+
+  // Ni未来ギミック状態 (Q_game_plant 専用)
+  const [plantStage, setPlantStage] = useState<0 | 1 | 2>(0); // 0: 現在, 1: 3日後, 2: 1週間後
 
   // 行動ログ履歴
   const [actionLogs, setActionLogs] = useState<string[]>([]);
@@ -448,7 +552,7 @@ export default function App() {
     Ti: 0, Te: 0, Ni: 0, Ne: 0, Si: 0, Se: 0, Fi: 0, Fe: 0
   });
 
-  // ポジション使用態様スコア
+  // 8ポジションごとに各情報要素の適合度を集計する行列
   const createEmptyPositionSignatures = (): Record<ModelPosition, Record<IE, number>> => ({
     leading: { Ti: 0, Te: 0, Ni: 0, Ne: 0, Si: 0, Se: 0, Fi: 0, Fe: 0 },
     creative: { Ti: 0, Te: 0, Ni: 0, Ne: 0, Si: 0, Se: 0, Fi: 0, Fe: 0 },
@@ -462,13 +566,6 @@ export default function App() {
 
   const [posSignatures, setPosSignatures] = useState<Record<ModelPosition, Record<IE, number>>>(createEmptyPositionSignatures());
   const [jpScore, setJpScore] = useState({ j: 0, p: 0 });
-
-  // ダーリンちゃんへの言い訳
-  const [excuseText, setExcuseText] = useState('');
-  const [excuseSubmitted, setExcuseSubmitted] = useState(false);
-
-  // コピー状態表示
-  const [copiedLog, setCopiedLog] = useState(false);
 
   // 画像保存Ref
   const resultCardRef = useRef<HTMLDivElement>(null);
@@ -485,52 +582,19 @@ export default function App() {
     setStep('quiz');
   };
 
-  // Q1ミニゲームでゴミをタップしたときの処理（補助データとして記録）
-  const handleQ1CleanTrash = (id: number) => {
-    setQ1TrashItems(prev => prev.filter(item => item.id !== id));
-    const nextCount = q1GameCleanedCount + 1;
-    setQ1GameCleanedCount(nextCount);
-    
-    // ログに行動ギミック結果を記録
-    if (!actionLogs.some(l => l.includes('【ミニゲーム】'))) {
-      setActionLogs(prev => [...prev, `【ミニゲーム】画面上のゴミを片付け操作した (${nextCount}/5)`]);
-    } else {
-      setActionLogs(prev => prev.map(l => l.includes('【ミニゲーム】') ? `【ミニゲーム】画面上のゴミを片付け操作した (${nextCount}/5)` : l));
-    }
+  // 芋虫タップ
+  const handleCaterpillarClick = () => {
+    setCaterpillarReaction(true);
+    setTimeout(() => setCaterpillarReaction(false), 1200);
   };
 
-  // Q1での通常A/B選択肢のハンドリング
-  const handleQ1SelectOption = (isOptionA: boolean) => {
-    const logTag = isOptionA 
-      ? '【状況1】A「面倒でも片付ける」を選択' 
-      : '【状況1】B「今日は休む。明日でもいい」を選択';
-
-    setActionLogs(prev => [...prev, logTag]);
-
-    // 履歴保存
-    setHistory(prev => [
-      ...prev,
-      {
-        qId: 'q1',
-        ieScores: { ...ieScores },
-        posSignatures: JSON.parse(JSON.stringify(posSignatures)),
-        jp: { ...jpScore },
-        logs: [...actionLogs]
-      }
-    ]);
-
-    if (isOptionA) {
-      setIeScores(prev => ({ ...prev, Se: prev.Se + 1.5, Te: prev.Te + 1.0 }));
-      setJpScore(prev => ({ ...prev, j: prev.j + 1.5 }));
-      setCurrentQId('q1a'); // A用深掘りへ
-    } else {
-      setIeScores(prev => ({ ...prev, Si: prev.Si + 2.0, Ni: prev.Ni + 1.0 }));
-      setJpScore(prev => ({ ...prev, p: prev.p + 1.5 }));
-      setCurrentQId('q1b'); // B用深掘りへ
-    }
+  // Q_game_trash 片付けギミックタップ
+  const handleCleanTrash = (id: number) => {
+    setTrashItems(prev => prev.filter(item => item.id !== id));
+    setCleanedCount(prev => prev + 1);
   };
 
-  // 通常設問（Q1a以降）の選択肢ハンドリング
+  // 通常設問の選択肢ハンドリング
   const handleSelectOption = (option: Option) => {
     const newLogs = option.reasonTag ? [...actionLogs, option.reasonTag] : actionLogs;
 
@@ -603,11 +667,6 @@ export default function App() {
       }
     ]);
 
-    if (currentQId === 'q1') {
-      setCurrentQId('q2');
-      return;
-    }
-
     const q = QUESTIONS[currentQId];
     const nextId = q?.options[0]?.nextId || 'result';
     if (nextId === 'result') {
@@ -638,14 +697,6 @@ export default function App() {
     confetti({ particleCount: 80, spread: 90, origin: { y: 0.6 } });
   };
 
-  // 行動ログのコピー
-  const handleCopyLogs = () => {
-    const text = actionLogs.join('\n');
-    navigator.clipboard.writeText(text);
-    setCopiedLog(true);
-    setTimeout(() => setCopiedLog(false), 2000);
-  };
-
   // 画像保存
   const handleDownloadImage = async () => {
     if (!resultCardRef.current || isExporting) return;
@@ -670,7 +721,7 @@ export default function App() {
   // シェア
   const handleShare = () => {
     const topMatch = calculatedMatches[0];
-    const text = `【ソシオJ/Pねじれ診断結果】\n最も近いソシオニクスModel A構造: ${topMatch?.type || 'LII'} (${topMatch?.score.toFixed(1)}%適合)\n心理機能順位: ${rankedIes.map(item => item.ie).join(' ＞ ')}\nJ/P傾向: P ${pPercent}% / J ${100 - pPercent}%\n#ソシオJPねじれ診断`;
+    const text = `【ソシオJ/Pねじれ診断結果】\n最も近いソシオニクスModel A構造: ${topMatch?.type || 'LII'} (${topMatch?.score.toFixed(1)}%適合)\nJ/P傾向: P ${pPercent}% / J ${100 - pPercent}%\n#ソシオJPねじれ診断`;
     if (navigator.share) {
       navigator.share({ title: 'ソシオJ/Pねじれ診断', text, url: window.location.href }).catch(() => {});
     } else {
@@ -716,12 +767,6 @@ export default function App() {
   const calculatedMatches = calculateTypeMatches();
   const topMatched = calculatedMatches[0] || { type: 'LII', score: 95.0 };
   const topMeta = SOCIONICS_META[topMatched.type];
-  const topTypeDef = MODEL_A_DEFINITIONS[topMatched.type];
-
-  // 8つの心理機能の総合得点ランキング（`＞` 順序表示用）
-  const rankedIes = (['Ti', 'Te', 'Ni', 'Ne', 'Si', 'Se', 'Fi', 'Fe'] as IE[])
-    .map(ie => ({ ie, score: ieScores[ie] || 0 }))
-    .sort((a, b) => b.score - a.score);
 
   // J/Pパーセンテージ計算
   const totalJp = jpScore.j + jpScore.p;
@@ -734,6 +779,17 @@ export default function App() {
 
   const currentQ = QUESTIONS[currentQId];
 
+  // 8ポジションそれぞれにおける8情報要素（IE）の順位ランキング生成
+  const getPositionRankings = (pos: ModelPosition) => {
+    const rawPosData = posSignatures[pos] || {};
+    return (['Ti', 'Te', 'Ni', 'Ne', 'Si', 'Se', 'Fi', 'Fe'] as IE[])
+      .map(ie => ({
+        ie,
+        score: (rawPosData[ie] || 0) + (ieScores[ie] || 0) * 0.4
+      }))
+      .sort((a, b) => b.score - a.score);
+  };
+
   return (
     <div className="min-h-screen bg-watercolor-dream text-slate-100 font-sans relative overflow-x-hidden flex flex-col justify-between selection:bg-pink-500 selection:text-white">
       
@@ -742,25 +798,38 @@ export default function App() {
 
       {/* 舞い散る花びら */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        {[...Array(14)].map((_, i) => (
+        {[...Array(12)].map((_, i) => (
           <div
             key={i}
             className="petal"
             style={{
-              left: `${(i * 7.5) % 96}%`,
+              left: `${(i * 8.5) % 96}%`,
               width: `${14 + (i % 3) * 6}px`,
               height: `${22 + (i % 3) * 8}px`,
-              animationDelay: `${i * 0.9}s`,
-              animationDuration: `${9 + (i % 4) * 2}s`
+              animationDelay: `${i * 1.1}s`,
+              animationDuration: `${10 + (i % 4) * 2.5}s`
             }}
           />
         ))}
       </div>
 
+      {/* 🐛 復活！ 画面上の可愛い芋虫マスコット */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <button
+          onClick={handleCaterpillarClick}
+          className="caterpillar-anim bg-slate-900/90 hover:bg-pink-950/90 border border-pink-400/40 p-2.5 rounded-2xl shadow-xl flex items-center gap-2 cursor-pointer transition-transform hover:scale-110 active:scale-95 backdrop-blur-md"
+        >
+          <span className="text-2xl">🐛</span>
+          <span className="text-[11px] font-bold text-pink-300">
+            {caterpillarReaction ? 'ぷにっ🐛✨' : '芋虫ちゃん'}
+          </span>
+        </button>
+      </div>
+
       {/* ヘッダー */}
       <header className="relative z-10 w-full max-w-4xl mx-auto p-4 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <Flower2 className="w-6 h-6 text-pink-300 animate-spin" style={{ animationDuration: '14s' }} />
+          <Flower2 className="w-6 h-6 text-pink-300 animate-spin" style={{ animationDuration: '16s' }} />
           <span className="font-serif font-bold tracking-wider text-base md:text-lg text-slate-100">
             ソシオJ/Pねじれ診断
           </span>
@@ -770,10 +839,10 @@ export default function App() {
           <div className="flex items-center gap-2">
             <button
               onClick={handleGoBack}
-              className="px-3.5 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-100 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all border border-pink-400/40 shadow-md"
+              className="px-3.5 py-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-100 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all border border-pink-400/50 shadow-md"
             >
               <ArrowLeft className="w-4 h-4 text-pink-300" />
-              戻る
+              前の一問に戻る
             </button>
 
             <button
@@ -813,14 +882,14 @@ export default function App() {
                 </span>
               </h1>
 
-              <p className="text-slate-200 mb-8 text-base md:text-lg leading-relaxed font-normal bg-slate-900/60 p-5 rounded-2xl border border-white/10 backdrop-blur-md shadow-lg">
+              <p className="text-slate-200 mb-8 text-base md:text-lg leading-relaxed font-normal bg-slate-900/70 p-5 rounded-2xl border border-white/10 backdrop-blur-md shadow-lg">
                 あなたの「J」は、どこから来た？<br />
-                単なる8機能得点ではなく、<span className="font-bold text-sky-300 underline">Model A 8つのポジション</span>における機能の役割構造を解析し、MBTIとソシオニクスのねじれを完全解明します。
+                単なる機能ランキングではなく、<span className="font-bold text-sky-300 underline">Model A 8つのポジションごとの機能配置</span>を解析し、MBTIとソシオニクスの構造的ねじれを完全解明します。
               </p>
 
               <button
                 onClick={() => setStep('mbti_input')}
-                className="group relative inline-flex items-center justify-center px-9 py-4 text-lg font-bold text-slate-950 transition-all duration-300 bg-gradient-to-r from-sky-300 via-pink-300 to-purple-300 rounded-full shadow-lg shadow-pink-900/40 hover:shadow-pink-400/50 hover:scale-105 active:scale-95"
+                className="group relative inline-flex items-center justify-center px-9 py-4 text-lg font-bold text-slate-950 transition-all duration-300 bg-gradient-to-r from-sky-300 via-pink-300 to-purple-300 rounded-full shadow-lg shadow-pink-900/40 hover:shadow-pink-400/50 hover:scale-105 active:scale-95 cursor-pointer"
               >
                 <span>診断を始める</span>
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -828,7 +897,7 @@ export default function App() {
             </motion.div>
           )}
 
-          {/* STEP 2: 自認MBTI自由入力画面 */}
+          {/* STEP 2: 自認MBTI入力画面 */}
           {step === 'mbti_input' && (
             <motion.div
               key="mbti_input"
@@ -872,7 +941,7 @@ export default function App() {
                 </button>
                 <button
                   onClick={handleMbtiSubmit}
-                  className="px-6 py-3 bg-gradient-to-r from-sky-300 to-pink-300 hover:from-sky-200 hover:to-pink-200 text-slate-950 font-bold text-sm rounded-full shadow-lg transition-all"
+                  className="px-6 py-3 bg-gradient-to-r from-sky-300 to-pink-300 hover:from-sky-200 hover:to-pink-200 text-slate-950 font-bold text-sm rounded-full shadow-lg transition-all cursor-pointer"
                 >
                   質問へ進む
                 </button>
@@ -880,7 +949,7 @@ export default function App() {
             </motion.div>
           )}
 
-          {/* STEP 3: 質問回答画面 */}
+          {/* STEP 3: 質問・ミニゲーム設問画面 */}
           {step === 'quiz' && (
             <motion.div
               key={currentQId}
@@ -891,43 +960,33 @@ export default function App() {
             >
               <div className="glass-card p-6 md:p-9 rounded-3xl border border-pink-500/30 shadow-2xl relative overflow-hidden">
 
-                {/* Q1：統合型 片付け設問コンポーネント（状況提示 + ミニゲーム操作ギミック + A/B本心質問） */}
-                {currentQId === 'q1' ? (
+                {/* 🎮 独立設問：片付けミニゲーム画面 (Q_game_trash) */}
+                {currentQ?.type === 'game_trash' ? (
                   <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="inline-block px-3.5 py-1 rounded-full bg-slate-900 border border-pink-400/40 text-pink-300 text-xs font-bold">
-                        🗑️ 状況1：机の片付け
-                      </div>
-                      <button
-                        onClick={handleGoBack}
-                        className="text-xs text-sky-300 hover:text-white flex items-center gap-1 transition-colors font-semibold"
-                      >
-                        <ArrowLeft className="w-3.5 h-3.5" />
-                        戻る
-                      </button>
+                    <div className="inline-block px-3.5 py-1 rounded-full bg-slate-900 border border-pink-400/40 text-pink-300 text-xs font-bold mb-4">
+                      {currentQ.categoryTag}
                     </div>
 
-                    {/* STEP 1: 状況提示 */}
                     <p className="font-serif text-lg md:text-xl font-medium leading-relaxed mb-4 text-slate-100 whitespace-pre-wrap">
-                      明日の予定はありません。でも机の上はゴミだらけ。疲れていて片付ける気力はあまりありません。
+                      {currentQ.text}
                     </p>
 
-                    {/* STEP 2: 行動ギミック（実際に机の上を片付けてみよう） */}
-                    <div className="relative w-full h-52 bg-slate-950/80 rounded-2xl border border-pink-500/30 mb-6 p-4 overflow-hidden shadow-inner">
+                    {/* 片付けゲームステージ */}
+                    <div className="relative w-full h-56 bg-slate-950/90 rounded-2xl border border-pink-500/30 mb-6 p-4 overflow-hidden shadow-inner">
                       <div className="absolute top-2.5 left-3 text-xs text-slate-300 flex items-center gap-1.5 font-medium">
                         <Gamepad2 className="w-4 h-4 text-pink-400" />
-                        【実際の操作ギミック】ゴミをタップして片付けてみよう！
+                        【操作ギミック】ゴミをタップして片付けてみよう！
                       </div>
 
-                      <div className="absolute bottom-3 right-3 bg-slate-900/90 border border-pink-400/30 p-2.5 rounded-xl flex items-center gap-2 text-xs text-slate-200 shadow-md">
+                      <div className="absolute bottom-3 right-3 bg-slate-900/90 border border-pink-400/30 p-2 rounded-xl flex items-center gap-2 text-xs text-slate-200 shadow-md">
                         <Trash2 className="w-4 h-4 text-pink-400" />
-                        <span>片付け数: <strong className="text-pink-300 font-bold">{q1GameCleanedCount}</strong> / 5</span>
+                        <span>片付け数: <strong className="text-pink-300 font-bold">{cleanedCount}</strong> / 5</span>
                       </div>
 
-                      {q1TrashItems.map(item => (
+                      {trashItems.map(item => (
                         <button
                           key={item.id}
-                          onClick={() => handleQ1CleanTrash(item.id)}
+                          onClick={() => handleCleanTrash(item.id)}
                           style={{ top: `${item.y}%`, left: `${item.x}%` }}
                           className="absolute transform -translate-x-1/2 -translate-y-1/2 bg-slate-900/90 hover:bg-pink-500/40 p-2.5 rounded-2xl border border-white/20 transition-all hover:scale-110 active:scale-95 flex items-center gap-1.5 shadow-md group cursor-pointer"
                         >
@@ -936,52 +995,81 @@ export default function App() {
                         </button>
                       ))}
 
-                      {q1TrashItems.length === 0 && (
+                      {trashItems.length === 0 && (
                         <div className="absolute inset-0 flex items-center justify-center bg-slate-950/90 rounded-2xl text-pink-300 font-bold text-sm">
-                          ✨ ピカピカに片付きました！（画面操作完了）
+                          ✨ ピカピカに片付きました！（試行完了）
                         </div>
                       )}
                     </div>
 
-                    {/* STEP 3: 本心の通常2択質問 */}
-                    <div className="space-y-3">
-                      <p className="text-sm font-bold text-sky-200 mb-2">
-                        質問：現実のあなたなら、どう行動しますか？
-                      </p>
-                      
-                      <button
-                        onClick={() => handleQ1SelectOption(true)}
-                        className="w-full text-left p-4 rounded-2xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700/90 hover:border-pink-400 transition-all flex items-center justify-between group shadow-md"
-                      >
-                        <span className="text-sm md:text-base text-slate-100 font-medium">A：面倒でも片付ける</span>
-                        <Sparkles className="w-5 h-5 text-pink-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </button>
-
-                      <button
-                        onClick={() => handleQ1SelectOption(false)}
-                        className="w-full text-left p-4 rounded-2xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700/90 hover:border-pink-400 transition-all flex items-center justify-between group shadow-md"
-                      >
-                        <span className="text-sm md:text-base text-slate-100 font-medium">B：今日は休む。明日でもいい</span>
-                        <Sparkles className="w-5 h-5 text-pink-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </button>
+                    <button
+                      onClick={() => handleSelectOption(currentQ.options[0])}
+                      className="w-full py-4 rounded-2xl bg-gradient-to-r from-sky-400 to-pink-400 text-slate-950 font-bold text-base shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                    >
+                      操作完了！ 次の心理質問へ進む
+                    </button>
+                  </div>
+                ) : currentQ?.type === 'game_plant' ? (
+                  /* 🔮 独立設問：Ni未来予測ミニゲーム画面 (Q_game_plant) */
+                  <div>
+                    <div className="inline-block px-3.5 py-1 rounded-full bg-slate-900 border border-sky-400/40 text-sky-300 text-xs font-bold mb-4">
+                      {currentQ.categoryTag}
                     </div>
+
+                    <p className="font-serif text-lg md:text-xl font-medium leading-relaxed mb-4 text-slate-100 whitespace-pre-wrap">
+                      {currentQ.text}
+                    </p>
+
+                    {/* 未来観察ステージ */}
+                    <div className="relative w-full p-6 bg-slate-950/90 rounded-2xl border border-sky-500/30 mb-6 text-center shadow-inner">
+                      <div className="text-6xl mb-3 transition-transform duration-500 scale-110">
+                        {plantStage === 0 ? '🌱' : plantStage === 1 ? '🍂' : '🥀'}
+                      </div>
+
+                      <div className="text-sm font-bold text-sky-200 mb-1">
+                        {plantStage === 0 ? '【現在】葉が少し黄色くなっている' : plantStage === 1 ? '【3日後】葉がさらに黄変し落葉が始まった' : '【1週間後】ほぼ全ての葉が落ちて枯れてしまった'}
+                      </div>
+                      <p className="text-xs text-slate-400 mb-5">
+                        時間の経過にともなう展開・帰結の観察ギミックです。
+                      </p>
+
+                      <div className="flex justify-center gap-3">
+                        <button
+                          onClick={() => setPlantStage(0)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${plantStage === 0 ? 'bg-sky-500 text-slate-950 border-sky-300' : 'bg-slate-800 text-slate-300 border-slate-700'}`}
+                        >
+                          現在
+                        </button>
+                        <button
+                          onClick={() => setPlantStage(1)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${plantStage === 1 ? 'bg-sky-500 text-slate-950 border-sky-300' : 'bg-slate-800 text-slate-300 border-slate-700'}`}
+                        >
+                          ▶ 3日後を見る
+                        </button>
+                        <button
+                          onClick={() => setPlantStage(2)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${plantStage === 2 ? 'bg-sky-500 text-slate-950 border-sky-300' : 'bg-slate-800 text-slate-300 border-slate-700'}`}
+                        >
+                          ▶ 1週間後を見る
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleSelectOption(currentQ.options[0])}
+                      className="w-full py-4 rounded-2xl bg-gradient-to-r from-sky-400 to-pink-400 text-slate-950 font-bold text-base shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                    >
+                      観察完了！ 深掘り質問へ進む
+                    </button>
                   </div>
                 ) : currentQ ? (
+                  /* 標準の心理質問 */
                   <div>
-                    <div className="flex items-center justify-between mb-4">
-                      {currentQ.categoryTag && (
-                        <div className="inline-block px-3.5 py-1 rounded-full bg-slate-900 border border-pink-400/40 text-pink-300 text-xs font-bold">
-                          {currentQ.categoryTag}
-                        </div>
-                      )}
-                      <button
-                        onClick={handleGoBack}
-                        className="text-xs text-sky-300 hover:text-white flex items-center gap-1 transition-colors font-semibold"
-                      >
-                        <ArrowLeft className="w-3.5 h-3.5" />
-                        前の一問に戻る
-                      </button>
-                    </div>
+                    {currentQ.categoryTag && (
+                      <div className="inline-block px-3.5 py-1 rounded-full bg-slate-900 border border-pink-400/40 text-pink-300 text-xs font-bold mb-4">
+                        {currentQ.categoryTag}
+                      </div>
+                    )}
 
                     <p className="font-serif text-lg md:text-xl font-medium leading-relaxed mb-8 text-slate-100 whitespace-pre-wrap">
                       {currentQ.text}
@@ -992,7 +1080,7 @@ export default function App() {
                         <button
                           key={idx}
                           onClick={() => handleSelectOption(opt)}
-                          className="w-full text-left p-5 rounded-2xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700/90 hover:border-pink-400 transition-all flex items-center justify-between group shadow-md"
+                          className="w-full text-left p-5 rounded-2xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700/90 hover:border-pink-400 transition-all flex items-center justify-between group shadow-md cursor-pointer"
                         >
                           <span className="text-sm md:text-base text-slate-100 leading-relaxed font-normal">{opt.text}</span>
                           <Sparkles className="w-5 h-5 text-pink-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2" />
@@ -1034,97 +1122,81 @@ export default function App() {
                         <>自認タイプは未入力だったね♡</>
                       )}
                       <br />
-                      Model A 8ポジションの配置構造を解析した結果、最も適合したのは『<span className="font-bold text-pink-300 underline">{topMeta.name}</span>』だったよ♡
+                      Model A 8つのポジション配置構造を解析した結果、最も適合したのは『<span className="font-bold text-pink-300 underline">{topMeta.name}</span>』だったよ♡
                     </p>
                   </div>
                 </div>
 
-                {/* 🥇 1位判定ソシオタイプ */}
+                {/* 🥇 一番上：各Model A構造への適合度を示す「棒グラフ」 */}
                 <div className="bg-slate-950/90 rounded-2xl p-6 border border-pink-500/40 mb-6 shadow-inner">
-                  <div className="flex items-center gap-2 text-xs text-pink-300 font-bold tracking-widest uppercase mb-1">
-                    <Award className="w-4 h-4 text-pink-400" />
-                    Top Matched Socionics Model A Structure
+                  <div className="flex items-center gap-2 text-xs text-pink-300 font-bold tracking-widest uppercase mb-3">
+                    <BarChart2 className="w-4 h-4 text-pink-400" />
+                    Model A 適合度 棒グラフランキング
                   </div>
-                  <div className="flex items-baseline justify-between">
-                    <h2 className="font-serif text-2xl md:text-3xl font-extrabold text-white mb-1">
-                      {topMeta.name}
-                    </h2>
-                    <span className="text-sm font-bold text-pink-300">{topMatched.score.toFixed(1)}% 適合</span>
-                  </div>
-                  <p className="text-xs md:text-sm font-semibold text-sky-200 mb-3">{topMeta.title}</p>
-                  <p className="text-xs md:text-sm text-slate-300 leading-relaxed font-normal">
-                    {topMeta.desc}
-                  </p>
-                </div>
 
-                {/* 📊 復活！ 8心理機能の総合得点ランキング（`＞` 順序表示） */}
-                <div className="bg-slate-900/90 rounded-2xl p-5 mb-6 border border-sky-400/30">
-                  <h3 className="text-xs text-sky-300 font-bold uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <Sparkle className="w-4 h-4 text-sky-400" />
-                    📊 あなたの8心理機能 強さのランキング順位
-                  </h3>
-                  
-                  {/* `＞` で繋いだ順序表示 */}
-                  <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 mb-4 flex flex-wrap items-center gap-1.5 text-xs font-mono font-bold">
-                    {rankedIes.map((item, idx) => (
-                      <React.Fragment key={item.ie}>
-                        <span className={`px-2 py-0.5 rounded ${idx === 0 ? 'bg-pink-500/30 text-pink-300 border border-pink-500/50' : idx <= 2 ? 'bg-sky-500/20 text-sky-200' : 'bg-slate-800 text-slate-300'}`}>
-                          {item.ie} ({item.score.toFixed(1)})
-                        </span>
-                        {idx < rankedIes.length - 1 && (
-                          <span className="text-slate-500 font-bold">＞</span>
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 🏆 Model A 適合タイプランキング TOP 4 */}
-                <div className="bg-slate-900/80 rounded-2xl p-5 mb-6 border border-slate-700">
-                  <h3 className="text-xs text-pink-300 font-bold uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <Award className="w-4 h-4 text-pink-400" />
-                    🏆 Model A 適合タイプランキング
-                  </h3>
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {calculatedMatches.slice(0, 4).map((m, idx) => {
+                  <div className="space-y-3 mb-6">
+                    {calculatedMatches.slice(0, 5).map((m, idx) => {
                       const meta = SOCIONICS_META[m.type];
-                      const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '④';
                       return (
-                        <div key={m.type} className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
-                          <div>
-                            <span className="text-xs font-bold text-slate-100 mr-1.5">{medal} {m.type}</span>
-                            <p className="text-[10px] text-slate-400 truncate max-w-[100px]">{meta.title}</p>
+                        <div key={m.type} className="space-y-1">
+                          <div className="flex justify-between text-xs font-bold">
+                            <span className="text-slate-200">
+                              {idx + 1}. {m.type} ({meta.title})
+                            </span>
+                            <span className="text-pink-300 font-mono">{m.score.toFixed(1)}%</span>
                           </div>
-                          <span className="text-xs font-mono font-bold text-pink-300">{m.score.toFixed(1)}%</span>
+                          <div className="h-3 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+                            <div
+                              style={{ width: `${m.score}%` }}
+                              className={`h-full transition-all duration-700 ${idx === 0 ? 'bg-gradient-to-r from-sky-400 via-pink-400 to-purple-400' : 'bg-slate-700'}`}
+                            />
+                          </div>
                         </div>
                       );
                     })}
                   </div>
+
+                  <div className="p-4 bg-slate-900/90 rounded-xl border border-pink-500/30">
+                    <p className="text-xs text-pink-300 font-bold mb-1">最有力ソシオタイプ: {topMeta.name}</p>
+                    <p className="text-xs text-slate-300 leading-relaxed">{topMeta.desc}</p>
+                  </div>
                 </div>
 
-                {/* 🧬 8つの Model A ポジション配置カード */}
-                <div className="bg-slate-900/80 rounded-2xl p-5 mb-6 border border-slate-700">
+                {/* 🧩 みつき理想！ Model A 8つのポジションごとの機能ランキング表示 */}
+                <div className="bg-slate-900/90 rounded-2xl p-5 mb-6 border border-sky-400/40">
                   <h3 className="text-xs text-sky-300 font-bold uppercase tracking-wider mb-4 flex items-center gap-1.5">
                     <Layers className="w-4 h-4 text-sky-400" />
-                    🧬 あなたの判定タイプ ({topMatched.type}) の Model A 8ポジション配置
+                    🧩 Model A 8ポジション別 心理機能順位
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  
+                  <div className="space-y-3.5">
                     {POSITIONS_ARRAY.map(pos => {
-                      const info = POSITION_INFO[pos];
-                      const assignedIE = topTypeDef[pos];
-                      const rawScore = ieScores[assignedIE] || 0;
+                      const posInfo = POSITION_INFO[pos];
+                      const rankedList = getPositionRankings(pos);
 
                       return (
-                        <div key={pos} className="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800">
-                          <div className="flex items-center justify-between mb-0.5">
-                            <p className="text-xs font-bold text-sky-300">{info.nameJa}</p>
-                            <span className="px-2 py-0.5 rounded bg-sky-500/20 text-sky-200 border border-sky-500/40 text-xs font-mono font-bold">
-                              {assignedIE}
+                        <div key={pos} className="bg-slate-950 p-3.5 rounded-xl border border-slate-800">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-bold text-pink-300">
+                              {posInfo.nameJa} ({pos})
+                            </span>
+                            <span className="text-[10px] text-slate-400 truncate max-w-[180px]">
+                              {posInfo.desc}
                             </span>
                           </div>
-                          <p className="text-[10px] text-slate-400 mb-1 truncate">{info.desc}</p>
-                          <div className="text-[10px] text-slate-300 font-mono">
-                            機能発揮傾向: <span className="text-sky-300 font-bold">+{rawScore.toFixed(1)} pt</span>
+
+                          {/* 各ポジションにおける機能順位（＞つなぎ表示） */}
+                          <div className="flex flex-wrap items-center gap-1 text-[11px] font-mono font-bold mt-1.5">
+                            {rankedList.map((item, idx) => (
+                              <React.Fragment key={item.ie}>
+                                <span className={`px-1.5 py-0.5 rounded ${idx === 0 ? 'bg-pink-500/30 text-pink-300 border border-pink-500/50' : idx <= 2 ? 'bg-sky-500/20 text-sky-200' : 'bg-slate-900 text-slate-400'}`}>
+                                  {item.ie}
+                                </span>
+                                {idx < rankedList.length - 1 && (
+                                  <span className="text-slate-600 font-bold">＞</span>
+                                )}
+                              </React.Fragment>
+                            ))}
                           </div>
                         </div>
                       );
@@ -1153,110 +1225,59 @@ export default function App() {
                     <div className="bg-slate-800/90 p-4 rounded-2xl rounded-tl-none border border-pink-500/40 flex-1">
                       <p className="text-xs text-pink-300 font-bold mb-1">🥺 ダーリンちゃん</p>
                       <p className="text-slate-100 text-sm leading-relaxed mb-4">
-                        ……ねぇ、ダーリン♡ あなたは自認が『<span className="font-bold text-sky-300">{detectedMbti}</span>』でJ型のはずだよね？<br />
-                        でも実際の行動選択では、柔軟なP的傾向（{pPercent}%）が出てるよ♡<br />
-                        ……ねぇダーリン♡ あなたの「J」要素って、一体どこに行っちゃったの？♡<br />
-                        自分がJ型だと思う理由を私に教えてくれる？♡
+                        ……ねぇ、ダーリン♡ あなたは自認が
+                        『<span className="font-bold text-sky-300">{detectedMbti}</span>』みたいだけど……<br />
+                        Model A 構造では『<span className="font-bold text-pink-300">{topMatched.type}</span>』が最も強く出ていて、柔軟な非合理・P傾向が強く出てるよ♡<br />
+                        本当に「J」なのかな？ ふふっ♡
                       </p>
-
-                      {!excuseSubmitted ? (
-                        <div className="space-y-2">
-                          <textarea
-                            value={excuseText}
-                            onChange={e => setExcuseText(e.target.value)}
-                            placeholder="私がJ型だと思う理由は..."
-                            className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-pink-400 min-h-[70px]"
-                          />
-                          <button
-                            onClick={() => setExcuseSubmitted(true)}
-                            disabled={!excuseText.trim()}
-                            className="w-full py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-bold text-xs rounded-xl disabled:opacity-40 transition-all flex items-center justify-center gap-1.5"
-                          >
-                            <Send className="w-3.5 h-3.5" />
-                            ダーリンちゃんに送信する♡
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="p-3 bg-pink-950/40 rounded-xl border border-pink-500/30 text-xs text-pink-200 font-medium leading-relaxed">
-                          ふふ、なるほどね♡<br />
-                          でもそれって計画性というより、単に「不安」や「こだわり」から来てたりしない？♡<br />
-                          まあ、そう思いたいならそういうことにしておいてあげます♡
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}
-              </div>
 
-              {/* 行動ログ表示エリア（コピペ機能付き・画像保存対象外） */}
-              <div className="bg-slate-900/90 backdrop-blur-md p-5 rounded-3xl border border-slate-800">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-xs text-sky-300 font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkle className="w-4 h-4 text-sky-400" />
-                    📋 回答の行動ログ（テキスト出力用）
-                  </h3>
+                {/* シェア・画像ダウンロード */}
+                <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
                   <button
-                    onClick={handleCopyLogs}
-                    className="px-3 py-1.5 bg-sky-300 hover:bg-sky-200 text-slate-950 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5"
+                    onClick={handleShare}
+                    className="px-5 py-2.5 bg-gradient-to-r from-sky-400 to-pink-400 text-slate-950 font-bold rounded-full text-xs flex items-center gap-2 shadow-lg transition-all hover:scale-105 active:scale-95 cursor-pointer"
                   >
-                    {copiedLog ? <Check className="w-3.5 h-3.5 text-slate-950" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedLog ? 'コピー完了！' : '行動ログをコピー'}</span>
+                    <Share2 className="w-4 h-4" />
+                    結果をシェア
+                  </button>
+                  <button
+                    onClick={handleDownloadImage}
+                    disabled={isExporting}
+                    className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-600 font-bold rounded-full text-xs flex items-center gap-2 shadow-lg transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4 text-pink-300" />
+                    <span>{isExporting ? '生成中...' : '画像として保存'}</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStep('title');
+                      setCurrentQId('q1');
+                      setIeScores({ Ti: 0, Te: 0, Ni: 0, Ne: 0, Si: 0, Se: 0, Fi: 0, Fe: 0 });
+                      setPosSignatures(createEmptyPositionSignatures());
+                      setJpScore({ j: 0, p: 0 });
+                      setActionLogs([]);
+                      setHistory([]);
+                    }}
+                    className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 font-bold rounded-full text-xs flex items-center gap-2 transition-all cursor-pointer"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    もう一度診断する
                   </button>
                 </div>
-                <div className="bg-slate-950 p-3.5 rounded-xl text-xs font-mono text-slate-200 leading-relaxed max-h-40 overflow-y-auto whitespace-pre-wrap select-all border border-slate-800">
-                  {actionLogs.length > 0 ? actionLogs.join('\n') : '行動ログはありません'}
-                </div>
-              </div>
-
-              {/* シェア＆画像保存アクションボタン */}
-              <div className="flex flex-col sm:flex-row items-center gap-3">
-                <button
-                  onClick={handleDownloadImage}
-                  disabled={isExporting}
-                  className="w-full sm:w-1/2 py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm rounded-2xl border border-slate-700 transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 disabled:opacity-50"
-                >
-                  <Download className="w-4 h-4 text-pink-400" />
-                  <span>{isExporting ? '画像を生成中...' : '結果を画像保存'}</span>
-                </button>
-                <button
-                  onClick={handleShare}
-                  className="w-full sm:w-1/2 py-3.5 bg-gradient-to-r from-sky-300 to-pink-300 hover:from-sky-200 hover:to-pink-200 text-slate-950 font-bold text-sm rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95"
-                >
-                  <Share2 className="w-4 h-4" />
-                  <span>結果をシェアする</span>
-                </button>
-              </div>
-
-              <div className="text-center pt-2">
-                <button
-                  onClick={() => {
-                    setStep('title');
-                    setHistory([]);
-                    setCurrentQId('q1');
-                    setIeScores({ Ti: 0, Te: 0, Ni: 0, Ne: 0, Si: 0, Se: 0, Fi: 0, Fe: 0 });
-                    setPosSignatures(createEmptyPositionSignatures());
-                    setJpScore({ j: 0, p: 0 });
-                    setActionLogs([]);
-                    setExcuseSubmitted(false);
-                    setExcuseText('');
-                    setQ1GameCleanedCount(0);
-                    setQ1TrashItems([
-                      { id: 1, icon: '📄', label: '古い資料', x: 22, y: 35 },
-                      { id: 2, icon: '🥫', label: '空き缶', x: 75, y: 25 },
-                      { id: 3, icon: '🍟', label: '食べカス', x: 48, y: 65 },
-                      { id: 4, icon: '📝', label: 'メモ用紙', x: 82, y: 70 },
-                      { id: 5, icon: '🧃', label: '紙パック', x: 18, y: 72 }
-                    ]);
-                  }}
-                  className="text-xs text-slate-400 hover:text-white underline underline-offset-4"
-                >
-                  もう一度最初から診断する
-                </button>
               </div>
             </motion.div>
           )}
+
         </AnimatePresence>
       </main>
+
+      {/* フッター */}
+      <footer className="relative z-10 w-full max-w-4xl mx-auto p-4 text-center text-xs text-slate-300">
+        Socionics Model A Deep Structural Analysis Engine
+      </footer>
     </div>
   );
 }
