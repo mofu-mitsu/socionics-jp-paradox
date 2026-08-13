@@ -1,0 +1,8 @@
+{
+  "name": "ソシオJ/Pねじれ診断",
+  "description": "あなたの「J」はどこから来た？MBTIのJ/Pとソシオニクスの合理/非合理のねじれを解き明かす診断。",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
