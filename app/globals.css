@@ -5,6 +5,20 @@
   みつきの理想通りの透明感と滑らかな水彩アニメーション
 */
 
+@layer base {
+  :root {
+    --font-serif: "Noto Serif JP", "Shippori Mincho", "Yu Mincho", "MS PMincho", serif;
+  }
+}
+
+body {
+  font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}
+
 @keyframes watercolorSmooth {
   0% {
     background-position: 0% 50%;
@@ -45,7 +59,7 @@
 
 /* 溶け込むような滑らかで鮮やかな水彩グラデーション */
 .bg-watercolor-dream {
-  background: linear-gradient(135deg, #0b1329, #1a1b4b, #20103c, #132238, #0b1329);
+  background: linear-gradient(135deg, #e0f2fe, #bae6fd, #e0e7ff, #f0f9ff, #e0f2fe);
   background-size: 300% 300%;
   animation: watercolorSmooth 22s ease-in-out infinite;
 }
@@ -53,26 +67,26 @@
 /* オーロラ水彩のレイヤー */
 .watercolor-blobs {
   background: 
-    radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.25) 0%, transparent 60%),
-    radial-gradient(circle at 80% 15%, rgba(244, 114, 182, 0.25) 0%, transparent 55%),
+    radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.4) 0%, transparent 60%),
+    radial-gradient(circle at 80% 15%, rgba(244, 114, 182, 0.2) 0%, transparent 55%),
     radial-gradient(circle at 50% 60%, rgba(168, 85, 247, 0.2) 0%, transparent 65%),
-    radial-gradient(circle at 25% 80%, rgba(129, 140, 248, 0.25) 0%, transparent 60%);
+    radial-gradient(circle at 25% 80%, rgba(129, 140, 248, 0.3) 0%, transparent 60%);
   filter: blur(50px);
   pointer-events: none;
 }
 
 /* ガラス質感カード */
 .glass-card {
-  background: rgba(15, 23, 42, 0.82);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.1);
 }
 
 /* パステル水彩グラデーションテキスト */
 .text-watercolor-gradient {
-  background: linear-gradient(135deg, #7dd3fc 0%, #f472b6 50%, #c084fc 100%);
+  background: linear-gradient(135deg, #0284c7 0%, #db2777 50%, #9333ea 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -102,4 +116,32 @@
 ::-webkit-scrollbar-thumb {
   background: rgba(168, 85, 247, 0.5);
   border-radius: 10px;
+}
+
+@keyframes walkLeft {
+  0% { transform: translateX(100vw); }
+  100% { transform: translateX(-200px); }
+}
+.caterpillar-walk {
+  position: fixed;
+  left: 0;
+  animation: walkLeft 25s linear infinite;
+}
+
+@keyframes wiggleMove {
+  0%, 100% { transform: translateY(0px) rotate(-5deg); }
+  50% { transform: translateY(-8px) rotate(5deg); }
+}
+.caterpillar-wiggle {
+  animation: wiggleMove 0.8s ease-in-out infinite;
+}
+
+@keyframes squishAnim {
+  0% { transform: scale(1, 1); }
+  30% { transform: scale(1.4, 0.2) rotate(15deg); }
+  60% { transform: scale(1.6, 0.1) rotate(-10deg); }
+  100% { transform: scale(1.5, 0.15); opacity: 0; }
+}
+.caterpillar-squished {
+  animation: squishAnim 3.5s forwards ease-out;
 }
