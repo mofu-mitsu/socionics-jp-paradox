@@ -90,6 +90,9 @@ export default function App() {
   >([]);
 
   // 質問履歴スタック (戻る機能用)
+  const [selectedMultipleOptions, setSelectedMultipleOptions] = useState<
+    Option[]
+  >([]);
   const [history, setHistory] = useState<
     Array<{
       qId: string;
@@ -176,6 +179,88 @@ export default function App() {
   const handleCleanTrash = (id: number) => {
     setTrashItems((prev) => prev.filter((item) => item.id !== id));
     setCleanedCount((prev) => prev + 1);
+  };
+
+  const toggleMultipleOption = (option: Option) => {
+    setSelectedMultipleOptions((prev) =>
+      prev.includes(option)
+        ? prev.filter((o) => o !== option)
+        : [...prev, option],
+    );
+  };
+
+  const handleSubmitMultiple = () => {
+    if (selectedMultipleOptions.length === 0) {
+      alert("少なくとも1つは選んでね！");
+      return;
+    }
+
+    const currentQ = QUESTIONS[currentQId];
+    if (!currentQ) return;
+
+    const qText = currentQ.text;
+    const aText = selectedMultipleOptions
+      .map((o, i) => `${i + 1}. ${o.text}`)
+      .join("\n");
+    const reasonText = selectedMultipleOptions
+      .map((o) => o.reasonTag)
+      .join(" / ");
+
+    const newLogs = [...actionLogs, { q: qText, a: aText, reason: reasonText }];
+
+    setHistory((prev) => [
+      ...prev,
+      {
+        qId: currentQId,
+        ieScores: { ...ieScores },
+        posSignatures: JSON.parse(JSON.stringify(posSignatures)),
+        jp: { ...jpScore },
+        logs: [...actionLogs],
+      },
+    ]);
+
+    setActionLogs(newLogs);
+
+    let nextJ = 0;
+    let nextP = 0;
+    const nextIeScores = { ...ieScores };
+    const nextPosSignatures = JSON.parse(JSON.stringify(posSignatures));
+
+    selectedMultipleOptions.forEach((option) => {
+      if (option.ieDeltas) {
+        Object.entries(option.ieDeltas).forEach(([ieKey, val]) => {
+          const ie = ieKey as IE;
+          nextIeScores[ie] = (nextIeScores[ie] || 0) + (val || 0);
+        });
+      }
+      if (option.positionDeltas) {
+        Object.entries(option.positionDeltas).forEach(([posKey, ieDeltas]) => {
+          const pos = posKey as ModelPosition;
+          if (ieDeltas) {
+            Object.entries(ieDeltas).forEach(([ieKey, delta]) => {
+              const ie = ieKey as IE;
+              nextPosSignatures[pos][ie] =
+                (nextPosSignatures[pos][ie] || 0) + (delta || 0);
+            });
+          }
+        });
+      }
+      nextJ += option.jpDelta.j;
+      nextP += option.jpDelta.p;
+    });
+
+    setIeScores(nextIeScores);
+    setPosSignatures(nextPosSignatures);
+    setJpScore((prev) => ({ j: prev.j + nextJ, p: prev.p + nextP }));
+    setSelectedMultipleOptions([]);
+
+    const nextId = currentQ.nextId;
+    if (nextId && nextId !== "result" && nextId !== "end") {
+      setCurrentQId(nextId);
+    } else {
+      triggerConfetti();
+      setStep("result");
+    }
   };
 
   // 通常設問の選択肢ハンドリング
@@ -611,7 +696,54 @@ export default function App() {
             >
               <div className="glass-card p-6 md:p-9 rounded-3xl border border-pink-300/50 shadow-2xl relative overflow-hidden">
                 {/* 🎮 独立設問：片付けミニゲーム画面 (Q_game_trash) */}
-                {currentQ?.type === "game_trash" ? (
+
+                {/* ✨ 複数選択設問 (multiple) */}
+                {currentQ?.type === "multiple" ? (
+                  <div>
+                    {currentQ.categoryTag && (
+                      <div className="inline-block px-3.5 py-1 rounded-full bg-slate-50 border border-slate-300 text-slate-600 text-xs font-bold mb-4">
+                        {currentQ.categoryTag}
+                      </div>
+                    )}
+                    <p className="font-serif text-lg md:text-xl font-medium leading-relaxed mb-8 text-slate-800 whitespace-pre-wrap">
+                      {currentQ.text}
+                    </p>
+                    <div className="space-y-3 mb-8">
+                      {currentQ.options.map((opt, idx) => {
+                        const isSelected =
+                          selectedMultipleOptions.includes(opt);
+                        return (
+                          <div
+                            key={idx}
+                            onClick={() => toggleMultipleOption(opt)}
+                            className={`w-full text-left p-4 md:p-5 rounded-2xl border transition-all flex items-start gap-3 cursor-pointer ${
+                              isSelected
+                                ? "bg-pink-100/80 border-pink-400 ring-2 ring-pink-400/30 shadow-md"
+                                : "bg-white/90 border-slate-300 hover:bg-slate-50 hover:border-slate-400 shadow-sm"
+                            }`}
+                          >
+                            <div
+                              className={`w-6 h-6 rounded flex items-center justify-center shrink-0 mt-0.5 transition-colors ${isSelected ? "bg-pink-500 text-white" : "bg-slate-200"}`}
+                            >
+                              {isSelected && "✓"}
+                            </div>
+                            <span
+                              className={`leading-relaxed ${isSelected ? "text-slate-900 font-bold" : "text-slate-800"}`}
+                            >
+                              {opt.text}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <button
+                      onClick={handleSubmitMultiple}
+                      className="w-full py-4 md:py-4.5 rounded-2xl bg-gradient-to-r from-sky-300 to-pink-300 text-slate-950 font-bold text-base md:text-lg shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                    >
+                      次へ進む
+                    </button>
+                  </div>
+                ) : currentQ?.type === "game_trash" ? (
                   <div>
                     <div className="inline-block px-3.5 py-1 rounded-full bg-sky-50 border border-pink-300/50 text-pink-600 text-xs font-bold mb-4">
                       {currentQ.categoryTag}
