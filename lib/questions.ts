@@ -2,23 +2,22 @@ import { IE, ModelPosition } from "./socionics";
 
 export type Option = {
   text: string;
-  reasonTag?: string;
-  chappyResponse?: string;
-  chappyEmoji?: string;
+  reasonTag: string;
   ieDeltas?: Partial<Record<IE, number>>;
   positionDeltas?: Partial<Record<ModelPosition, Partial<Record<IE, number>>>>;
-  jpDelta: {
-    j: number;
-    p: number;
-  };
+  jpDelta?: { j: number; p: number };
   nextId?: string;
+  isDarlingEnding?: boolean;
+  chappyResponse?: string;
+  chappyEmoji?: string;
 };
 
 export type Question = {
   id: string;
   categoryTag?: string;
-  type?: "standard" | "game_trash" | "game_plant" | "game_chappy" | "multiple";
+  type?: "standard" | "game_trash" | "game_plant" | "game_chappy" | "game_intercom" | "text_input" | "multiple";
   nextId?: string;
+  isDarlingEnding?: boolean;
   text: string;
   options: Option[];
 };
@@ -1223,7 +1222,7 @@ export const QUESTIONS: Record<string, Question> = {
     text: "予期せぬトラブルや計画の破綻に直面したとき、あなたが一番最初にとる「思考と行動の姿勢」はどれ？",
     options: [
       {
-        text: "まず原因を整理する。どこに問題があったのか理解したうえで、筋の通る別の方法を組み立てる。",
+        text: "矛盾や欠陥をそのまま放置することを許さない。根本原因を突き止め、二度と破綻しない『正しい仕組み』に再構築する。",
         reasonTag:
           "【1Ti：主導論理】LII / LSI：構造解明と原理原則の再構築を最優先する（J的・合理的）",
         ieDeltas: { Ti: 2.0, Ne: 1.5, Se: 1.5 },
@@ -1326,6 +1325,7 @@ export const QUESTIONS: Record<string, Question> = {
           "【1Ti/2Ne】LII：2Neによる概念圧縮・理論建築・抽象空間の分析",
         ieDeltas: { Ti: 2.0, Ne: 3.0 },
         positionDeltas: {
+          leading: { Ti: 3.0 },
           creative: { Ne: 3.0 },
           vulnerable: { Se: 2.0 },
           activating: { Si: 1.5 },
@@ -1340,6 +1340,7 @@ export const QUESTIONS: Record<string, Question> = {
           "【1Ti/2Se】LSI：2Seによる現実支配・空間境界線の維持・規律の徹底（LSI芋虫スタイル）",
         ieDeltas: { Ti: 2.0, Se: 3.0 },
         positionDeltas: {
+          leading: { Ti: 3.0, Se: 2.0 },
           creative: { Se: 3.0 },
           vulnerable: { Ne: 2.0 },
           activating: { Ni: 1.5 },
@@ -1470,7 +1471,7 @@ export const QUESTIONS: Record<string, Question> = {
     text: "あなたが「こういう人や状況が一番苦手・イラつく！」と感じるのはどれ？",
     options: [
       {
-        text: "🧠 異なる概念や構造を、ただ「似ているから」という理由だけで無理やり同一視・混同して語る人",
+        text: "異なる概念や構造を、ただ「似ているから」という理由だけで無理やり同一視・混同して語る人",
         reasonTag:
           "【4Se/4Ne：PoLR】LII / LSI：論理的厳密性（1Ti）の崩壊、構造の曖昧さに対する強い知的ストレス",
         ieDeltas: { Ti: 3.0, Ne: 1.5, Se: 1.5 },
@@ -1488,7 +1489,7 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: "q_thinking_style_5step",
       },
       {
-        text: "📊 無駄や非効率なやり方をダラダラ続け、目の前で改善できる余地があるのに放置して変えようとしない人",
+        text: "無駄や非効率なやり方をダラダラ続け、目の前で改善できる余地があるのに放置して変えようとしない人",
         reasonTag:
           "【4Fi/4Si：PoLR】LIE / LSE：客観的効率性（1Te）の欠如、生産性の阻害に対する耐性の低さ",
         ieDeltas: { Te: 3.0, Ni: 1.5, Si: 1.5 },
@@ -1506,7 +1507,7 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: "q_thinking_style_5step",
       },
       {
-        text: "⚔️ 目の前で現実の状況が動いているのに、何の決断も主導権も取らず指をくわえて傍観している人",
+        text: "目の前で現実の状況が動いているのに、何の決断も主導権も取らず指をくわえて傍観している人",
         reasonTag:
           "【4Fi：PoLR】SLE：現実への直接介入（1Se）と迅速な実行のなさへの強い焦燥感",
         ieDeltas: { Se: 3.0, Ti: 2.0 },
@@ -1524,7 +1525,7 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: "q_thinking_style_5step",
       },
       {
-        text: "💡 人や状況が秘める面白い可能性や選択肢がたくさんあるのに、頭を硬くして決めつけたり枠に閉じこもる人",
+        text: "人や状況が秘める面白い可能性や選択肢がたくさんあるのに、頭を硬くして決めつけたり枠に閉じこもる人",
         reasonTag:
           "【1Ne/2Fi/2Ti】ILE / IEE：可能性（1Ne）の探索や人間関係・思考の柔軟性を塞ぐ不柔軟さへのイラつき",
         ieDeltas: { Ne: 3.0, Ti: 1.5, Fi: 1.5 },
@@ -1542,7 +1543,7 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: "q_thinking_style_5step",
       },
       {
-        text: "🛡️ 自分の個人的領域にズカズカ踏み込み、約束を破ったり不誠実で横暴な振る舞いを平気でする人",
+        text: "自分の個人的領域にズカズカ踏み込み、約束を破ったり不誠実で横暴な振る舞いを平気でする人",
         reasonTag:
           "【4Te/4Si：PoLR】EII / ESI：パーソナルスペース侵害・誠実さ（1Fi）の欠如への強烈な拒絶",
         ieDeltas: { Fi: 3.0, Ne: 1.5, Se: 1.5 },
@@ -1560,7 +1561,7 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: "q_thinking_style_5step",
       },
       {
-        text: "📋 細かな事務作業や現実的な手続きを上から目線で詰め込み、情緒やのほほんとしたペースを乱す人",
+        text: "細かな事務作業や現実的な手続きを上から目線で詰め込み、情緒やのほほんとしたペースを乱す人",
         reasonTag:
           "【4Te：PoLR】IEI / SEI：4Te（客観的手順・管理・詰め）への拒絶と1Ni/1Siの内的世界保護",
         ieDeltas: { Ni: 2.5, Si: 2.5, Fe: 2.0 },
@@ -1578,7 +1579,7 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: "q_thinking_style_5step",
       },
       {
-        text: "🕯️ 根拠のない根性論や騒々しい大騒ぎだけで押し押しで迫り、静かに状況を静観・分析することを不快がる人",
+        text: "根拠のない根性論や騒々しい大騒ぎだけで押し押しで迫り、静かに状況を静観・分析することを不快がる人",
         reasonTag:
           "【4Fe：PoLR】ILI / SLI：4Fe（過度な感情表現・同調圧力）への強い不快感と拒絶",
         ieDeltas: { Ni: 2.5, Si: 2.5, Te: 2.0 },
@@ -1597,7 +1598,7 @@ export const QUESTIONS: Record<string, Question> = {
       },
       {
         // 1Fe（ESE/EIE）：判断(Fe) -> 知覚(Si/Ni) -> 判断(Te) -> 知覚(Ni/Si) ...
-        text: "🧊 自分の体調や快適さ（Si）、あるいは遠い未来の不吉な予測（Ni）ばかり気にして、目の前の場の熱量や盛り上がりに冷や水をさす人",
+        text: "自分の体調や快適さ、あるいは遠い未来の不吉な予測ばかり気にして、目の前の場の熱量や盛り上がりに冷や水をさす人",
         reasonTag:
           "【4th/PoLR：Si(EIE) / Ni(ESE)】1Fe（感情の熱量・一体感）を阻害する「快適さへの偏執(4Si)」や「不吉な不確定未来(4Ni)」への強い拒絶反応。",
         ieDeltas: { Fe: 3.0, Si: 1.5, Ni: 1.5 },
@@ -1615,7 +1616,7 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: "q_thinking_style_5step",
       },
       {
-        text: "⛓️ 細かなマニュアルや厳格なルールで束縛し、こちらの臨機応変な動きや直感を否定してくる人",
+        text: "細かなマニュアルや厳格なルールで束縛し、こちらの臨機応変な動きや直感を否定してくる人",
         reasonTag:
           "【4Ti：PoLR】SEE / IEE：細かな理論・固定された枠組み（4Ti）による行動の束縛への拒絶",
         ieDeltas: { Se: 2.5, Ne: 2.5, Fi: 2.5 },
@@ -1642,7 +1643,7 @@ export const QUESTIONS: Record<string, Question> = {
     options: [
       {
         // A（Ti主導）LII・LSI：判断(T) -> 知覚(N/S) -> 判断(F/F) -> 知覚(S/N) ...
-        text: "「曖昧なままにせず、物事の正しい位置やルールをはっきりさせたい。矛盾や例外があれば整理し、自分なりに筋の通った基準を作って、それに沿って判断する。」",
+        text: "物事は『正しく・あるべき姿』で構造化されるべき。曖昧さや例外、論理の破綻を絶対に放置せず、客観的で筋の通った絶対的な基準・フレームワークを構築し、それに厳格に従ってブレずに判断・決断する。」",
         reasonTag:
           "【Ti主導（合理/J）】1:Ti(判断) -> 2:Ne/Se(知覚) -> 3:Fi(判断) -> 4:Se/Ne(知覚) -> 5:Fe(判断) -> 6:Si/Ni(知覚) -> 7:Te(判断) -> 8:Ni/Si(知覚)",
         ieDeltas: { Ti: 3.0, Ne: 1.5, Se: 1.5 },
@@ -1763,7 +1764,7 @@ export const QUESTIONS: Record<string, Question> = {
           demonstrative: { Ni: 2.0, Si: 2.0 },
         },
         jpDelta: { j: 2.0, p: 0 },
-        nextId: "q_perception_1",
+        nextId: "q_thinking_vs_feeling",
       },
       {
         // B：Te補助（ILI / SLI）：知覚(N/S) -> 判断(T) -> 知覚(S/N) -> 判断(F/F) ...
@@ -1782,7 +1783,7 @@ export const QUESTIONS: Record<string, Question> = {
           demonstrative: { Ti: 2.0 },
         },
         jpDelta: { j: 0, p: 3.0 },
-        nextId: "q_perception_1",
+        nextId: "q_thinking_vs_feeling",
       },
       {
         // C：Te主導（LIE / LSE）：判断(T) -> 知覚(N/S) -> 判断(F/F) -> 知覚(S/N) ...
@@ -1801,7 +1802,7 @@ export const QUESTIONS: Record<string, Question> = {
           demonstrative: { Ne: 2.0, Si: 2.0 },
         },
         jpDelta: { j: 3.0, p: 0 },
-        nextId: "q_perception_1",
+        nextId: "q_thinking_vs_feeling",
       },
       {
         // D：Ti補助（ILE / SLE）：知覚(N/S) -> 判断(T) -> 知覚(S/N) -> 判断(F/F) ...
@@ -1820,7 +1821,7 @@ export const QUESTIONS: Record<string, Question> = {
           demonstrative: { Te: 2.0 },
         },
         jpDelta: { j: 0, p: 0 },
-        nextId: "q_perception_1",
+        nextId: "q_thinking_vs_feeling",
       },
       {
         // E：感情型全般
@@ -1839,335 +1840,367 @@ export const QUESTIONS: Record<string, Question> = {
           demonstrative: { Fe: 1.0, Fi: 1.0 },
         },
         jpDelta: { j: 1.0, p: 1.0 },
-        nextId: "q_perception_1",
+        nextId: "q_thinking_vs_feeling",
       },
     ],
   },
-  // ==========================================================================
-  // 【設問1】知覚機能（Ni / Ne / Si / Se）4択 - 思考・行動の全体像
-  // ==========================================================================
-  q_perception_1: {
-    id: "q_perception_1",
-    categoryTag: "🧭 知覚機能4分類（第1問：全体傾向）",
+  q_thinking_vs_feeling: {
+    id: "q_thinking_vs_feeling",
+    categoryTag: "🧭 判断機能",
     type: "standard",
-    text: "あなたの頭の中の世界観や、行動のスタイルに一番近いものは？",
+    text: "物事を判断したり状況に関わったりする時、あなたが最も頼りにする基準や安心を感じる軸は？",
     options: [
       {
-        // Ni（1Ni + 2Niの統合）
-        text: "日常から少し距離を取り、時間を超えたつながりや未来の大まかな流れ・展開を直感的に見抜く。想像力が豊かで、そのイメージを使って大切な活動を前に進める。",
-        reasonTag: "【Ni】IEI, ILI, EIE, LIE",
-        ieDeltas: { Ni: 3.0 },
-        positionDeltas: { leading: { Ni: 2.5 }, creative: { Ni: 2.5 } },
-        jpDelta: { j: 0, p: 0 },
-        nextId: "q_perception_2",
+        // T要素の統合（1Ti, 2Ti, 1Te, 2Te）
+        text: "個人の感情や場の空気に流されず、筋の通った理論・ルールや、客観的に正確な事実・データ・効率性を重視して判断する。無駄なく理にかなった状態に安心覚える。",
+        reasonTag:
+          "【思考（T）】Ti / Te（LII, ILE, LSI, SLE, LIE, LSE, ILI, SLI）",
+        ieDeltas: { Ti: 2.0, Te: 2.0 },
+        positionDeltas: {
+          leading: { Ti: 1.5, Te: 1.5 },
+          creative: { Ti: 1.5, Te: 1.5 },
+        },
+        nextId: "q_darling_liar",
+        jpDelta: {
+          j: 0,
+          p: 0,
+        },
       },
       {
-        // Ne（1Ne + 2Neの統合）
-        text: "共通点を見つけるのが早く、「何かが始まるとき」や「どうなれるかという可能性」に強く惹かれる。新しいアイデアを大切な課題の解決や理想の未来に役立てたい。",
-        reasonTag: "【Ne】ILE, IEE, LII, EII",
-        ieDeltas: { Ne: 3.0 },
-        positionDeltas: { leading: { Ne: 2.5 }, creative: { Ne: 2.5 } },
-        jpDelta: { j: 0, p: 0 },
-        nextId: "q_perception_2",
-      },
-      {
-        // Si（1Si + 2Siの統合）※片付け＝Se、Si＝心地よければ散らかっててもOK
-        text: "自分や周りが心地よく過ごせる状態を大切にする。体調や好みに気づき、環境を整えたり、人が快適に楽しめるよう何かしてあげたりする。",
-        reasonTag: "【Si】SEI, SLI, ESE, LSE",
-        ieDeltas: { Si: 3.0 },
-        positionDeltas: { leading: { Si: 2.5 }, creative: { Si: 2.5 } },
-        jpDelta: { j: 0, p: 0 },
-        nextId: "q_perception_2",
-      },
-      {
-        // Se（1Se + 2Seの統合）
-        text: " 自分の意志や目的を現実に通していく。必要なら自分から動き、相手や状況に働きかけて、主導権を取りながら物事を前に進める。",
-        reasonTag: "【Se】SEE, SLE, ESI, LSI",
-        ieDeltas: { Se: 3.0 },
-        positionDeltas: { leading: { Se: 2.5 }, creative: { Se: 2.5 } },
-        jpDelta: { j: 0.5, p: 0 }, // SeのみJ加算
-        nextId: "q_perception_2",
+        // F要素の統合（1Fi, 2Fi, 1Fe, 2Fe）
+        text: "人との心理的距離感や味方かどうかの見極め・人間関係の繋がりや、その場の雰囲気・情熱・相手の気持ちを重視して判断する。人間同士のリアルな感情や心地よい空気を大切にする。",
+        reasonTag:
+          "【感情（F）】Fi / Fe（EII, IEE, ESI, SEE, EIE, ESE, IEI, SEI）",
+        ieDeltas: { Fi: 2.0, Fe: 2.0 },
+        positionDeltas: {
+          leading: { Fi: 1.5, Fe: 1.5 },
+          creative: { Fi: 1.5, Fe: 1.5 },
+        },
+        nextId: "q_darling_liar",
+        jpDelta: {
+          j: 0,
+          p: 0,
+        },
       },
     ],
   },
 
   // ==========================================================================
-  // 【設問2】知覚機能（Ni / Ne / Si / Se）4択 - 課題解決と現実への関わり
+  // 【ILI vs LII vs LSI 専用設問1】
+  // 抽象情報をどう処理するか
   // ==========================================================================
-  q_perception_2: {
-    id: "q_perception_2",
-    categoryTag: "🧭 知覚機能4分類（第2問：課題・取り組み方）",
+  q_ili_lii_lsi_split_1: {
+    id: 'q_ili_lii_lsi_split_1',
+    categoryTag: '🧠 抽象情報の処理と構造化',
+    type: 'standard',
+    text: '意味や構造が曖昧な抽象的な説明を読んだ時、あなたの頭の中で最も起こりやすい反応は？',
+    options: [
+      {
+        text: 'まず「その言葉は具体的に何を指している？」「前提条件は？」「その結論に至る因果関係は？」と定義や論理構造を確認したくなる。情報が足りなければ、別の解釈や可能性も並べながら、最終的に矛盾のない形へ整理したい。',
+        reasonTag: '【LII】1Ti, 2Ne, 8Te（定義・因果関係の監査＋可能性の整理）',
+        ieDeltas: { Ti: 3.0, Ne: 2.5, Te: 1.0, Ni: 0.5, Se: -1.5, Si: 0.5, Fe: 0.5, Fi: 1.0 },
+        positionDeltas: {
+          leading: { Ti: 3.0 }, creative: { Ne: 2.5 }, role: { Fi: 1.0 },
+          vulnerable: { Se: 1.5 }, suggestive: { Fe: 0.5 }, activating: { Si: 0.5 },
+          ignoring: { Te: 1.0 }, demonstrative: { Ni: 0.5 }
+        },
+        jpDelta: { j: 1.5, p: 0 },
+        nextId: 'q_ili_lii_lsi_split_2'
+      },
+      {
+        text: '細かい定義を一つずつ固定するより、「この話は結局どこへ向かっているのか？」という全体の流れを見る。情報が足りなくても、過去から現在までの流れや傾向から、その先に起こりそうな展開をぼんやり予測する。',
+        reasonTag: '【ILI】1Ni, 2Te, 8Ti（時間軸・潮流・未来への収束）',
+        ieDeltas: { Ni: 3.0, Te: 2.5, Ti: 1.0, Ne: 0.5, Se: -0.5, Si: 1.5, Fe: -1.0, Fi: 1.0 },
+        positionDeltas: {
+          leading: { Ni: 3.0 }, creative: { Te: 2.5 }, role: { Si: 1.5 },
+          vulnerable: { Fe: 1.0 }, suggestive: { Se: 0.5 }, activating: { Fi: 1.0 },
+          ignoring: { Ne: 0.5 }, demonstrative: { Ti: 1.0 }
+        },
+        jpDelta: { j: 0, p: 1.5 },
+        nextId: 'q_ili_lii_lsi_split_2'
+      },
+      {
+        text: '曖昧な概念をそのまま漂わせるのが気持ち悪く、具体的な物体・配置・力関係・手順などに置き換えて考えたくなる。「この仕組みは実際には何がどこにあって、どう作用しているのか？」まで落とし込み、明確な構造として把握したい。',
+        reasonTag: '【LSI】1Ti, 2Se, 8Si（抽象の物質化＋具体的構造の固定）',
+        ieDeltas: { Ti: 3.0, Se: 2.5, Si: 1.5, Te: 1.0, Ne: -2.0, Ni: 0.5, Fe: 0.5, Fi: 1.0 },
+        positionDeltas: {
+          leading: { Ti: 3.0 }, creative: { Se: 2.5 }, role: { Fi: 1.0 },
+          vulnerable: { Ne: 2.0 }, suggestive: { Fe: 0.5 }, activating: { Ni: 0.5 },
+          ignoring: { Te: 1.0 }, demonstrative: { Si: 1.5 }
+        },
+        jpDelta: { j: 2.0, p: 0 },
+        nextId: 'q_ili_lii_lsi_split_2'
+      }
+    ]
+  },
+  // ==========================================================================
+  // 【ILI vs LII vs LSI 専用設問2】
+  // 未来・予測・不確定要素
+  // ==========================================================================
+  q_ili_lii_lsi_split_2: {
+    id: 'q_ili_lii_lsi_split_2',
+    categoryTag: '🔮 未来予測と不確定要素への態度',
+    type: 'standard',
+    text: 'まだ結果が出ていない出来事について考える時、あなたの感覚に一番近いものは？',
+    options: [
+      {
+        text: '今ある情報から考えられる複数の可能性を比較し、「この条件ならA、この条件ならB」と整理する。遠い未来ほど不確定要素が増えるので、一つの結論に固定するより、条件ごとの分岐を残しておきたい。',
+        reasonTag: '【LII】1Ti, 2Ne, 8Ni（条件分岐・可能性の比較）',
+        ieDeltas: { Ti: 2.5, Ne: 3.0, Ni: 1.5, Te: 0.5, Se: -1.0, Si: 0.5, Fe: 0.5, Fi: 1.0 },
+        positionDeltas: {
+          leading: { Ti: 2.5 }, creative: { Ne: 3.0 }, role: { Fi: 1.0 },
+          vulnerable: { Se: 1.0 }, suggestive: { Fe: 0.5 }, activating: { Si: 0.5 },
+          ignoring: { Te: 0.5 }, demonstrative: { Ni: 1.5 }
+        },
+        jpDelta: { j: 1.0, p: 0 },
+        nextId: 'q_ili_lii_lsi_split_3'
+      },
+      {
+        text: '現在の状況だけでなく、過去から現在までの流れを見ると「このまま行けば最終的にこうなりそう」という一本の潮流が見えてくる。未来はまだ決まっていなくても、長期的な傾向から結末を予測してしまう。',
+        reasonTag: '【ILI】1Ni, 2Te, 8Ti（時間の流れ・長期的収束）',
+        ieDeltas: { Ni: 3.5, Te: 2.0, Ti: 1.0, Ne: -0.5, Se: -0.5, Si: 1.0, Fe: -1.0, Fi: 0.5 },
+        positionDeltas: {
+          leading: { Ni: 3.5 }, creative: { Te: 2.0 }, role: { Si: 1.0 },
+          vulnerable: { Fe: 1.0 }, suggestive: { Se: 0.5 }, activating: { Fi: 0.5 },
+          ignoring: { Ne: 0.5 }, demonstrative: { Ti: 1.0 }
+        },
+        jpDelta: { j: 0, p: 2.0 },
+        nextId: 'q_ili_lii_lsi_split_3'
+      },
+      {
+        text: '不確定な未来をあれこれ想像するより、現在わかっている事実・条件・既存のルールを確認する。そのうえで、現場の状況に応じて必要な手順を決め、実際に問題が起きたらその都度対処すればいい。',
+        reasonTag: '【LSI】1Ti, 2Se, 8Si（現状確認・既存条件・実務対応）',
+        ieDeltas: { Ti: 2.5, Se: 2.5, Si: 1.5, Ne: -2.0, Ni: 0.5, Te: 1.0, Fe: 0.5, Fi: 1.0 },
+        positionDeltas: {
+          leading: { Ti: 2.5 }, creative: { Se: 2.5 }, role: { Fi: 1.0 },
+          vulnerable: { Ne: 2.0 }, suggestive: { Fe: 0.5 }, activating: { Ni: 0.5 },
+          ignoring: { Te: 1.0 }, demonstrative: { Si: 1.5 }
+        },
+        jpDelta: { j: 2.0, p: 0 },
+        nextId: 'q_ili_lii_lsi_split_3'
+      }
+    ]
+  },
+  // ==========================================================================
+  // 【ILI vs LII vs LSI 専用設問3】
+  // 既存の理論・自認と新しい可能性
+  // ==========================================================================
+  q_ili_lii_lsi_split_3: {
+    id: 'q_ili_lii_lsi_split_3',
+    categoryTag: '🧩 自認・理論と新しい可能性',
+    type: 'standard',
+    text: '自分が長く考えて「これが一番筋が通っている」と決めた理論や自認に、別の可能性を提示された時は？',
+    options: [
+      {
+        text: '「なるほど、その可能性もあるか」と一度は検討する。むしろ新しい視点を材料にして、元の理論のどこが強く、どこに条件を追加すべきかを再構築したくなる。最終的に元の結論へ戻ることもある。',
+        reasonTag: '【LII】1Ti, 2Ne, 3Fi（可能性を材料にした理論再構築）',
+        ieDeltas: { Ti: 3.0, Ne: 3.0, Fi: 1.0, Ni: 0.5, Se: -1.0, Si: 0.5, Fe: 0.5, Te: 1.0 },
+        positionDeltas: {
+          leading: { Ti: 3.0 }, creative: { Ne: 3.0 }, role: { Fi: 1.0 },
+          vulnerable: { Se: 1.0 }, suggestive: { Fe: 0.5 }, activating: { Si: 0.5 },
+          ignoring: { Te: 1.0 }, demonstrative: { Ni: 0.5 }
+        },
+        jpDelta: { j: 1.0, p: 0 },
+        nextId: 'q_ili_lii_lsi_split_4'
+      },
+      {
+        text: '新しい可能性そのものより、「その変更によって今後どうなるのか」を見る。もし新しい説のほうが将来の展開をうまく説明できるなら静かに乗り換えるし、そうでなければ特に感情的にならず放置する。',
+        reasonTag: '【ILI】1Ni, 2Te, 5Se（将来の流れを見て採用・放置）',
+        ieDeltas: { Ni: 3.0, Te: 2.5, Se: 1.0, Ne: 0.5, Ti: 1.0, Si: 1.0, Fe: -0.5, Fi: 0.5 },
+        positionDeltas: {
+          leading: { Ni: 3.0 }, creative: { Te: 2.5 }, role: { Si: 1.0 },
+          vulnerable: { Fe: 0.5 }, suggestive: { Se: 1.0 }, activating: { Fi: 0.5 },
+          ignoring: { Ne: 0.5 }, demonstrative: { Ti: 1.0 }
+        },
+        jpDelta: { j: 0, p: 2.0 },
+        nextId: 'q_ili_lii_lsi_split_4'
+      },
+      {
+        text: '「これが正しい」と決めた枠組みに、根拠の薄い別案を次々持ち込まれるとかなり苛立つ。「その可能性を考えて何が変わるの？」となり、不要な分岐を切って元のルールや方針を維持したくなる。',
+        reasonTag: '【LSI】1Ti, 2Se, 4Ne（既存体系の防衛・不要な可能性の排除）',
+        ieDeltas: { Ti: 3.0, Se: 2.5, Ne: -3.0, Si: 1.0, Te: 1.0, Ni: 0.5, Fe: 0.5, Fi: 1.0 },
+        positionDeltas: {
+          leading: { Ti: 3.0 }, creative: { Se: 2.5 }, role: { Fi: 1.0 },
+          vulnerable: { Ne: 3.0 }, suggestive: { Fe: 0.5 }, activating: { Ni: 0.5 },
+          ignoring: { Te: 1.0 }, demonstrative: { Si: 1.0 }
+        },
+        jpDelta: { j: 2.5, p: 0 },
+        nextId: 'q_ili_lii_lsi_split_4'
+      }
+    ]
+  },
+  // ==========================================================================
+  // 【ILI vs LII vs LSI 専用設問4】
+  // 外部からの圧力・強制・マウントへの反応
+  // ==========================================================================
+  q_ili_lii_lsi_split_4: {
+    id: 'q_ili_lii_lsi_split_4',
+    categoryTag: '⚔️ 外圧・強制・境界線への反応',
+    type: 'standard',
+    text: '外部から「早くやれ」「今すぐ決めろ」「黙って従え」と強く圧をかけられた時、最も近い反応は？',
+    options: [
+      {
+        text: '「うわ、無理。急かさないで」となり、反発するより先に距離を取りたくなる。強い圧を受けると頭が真っ白になったり、静かな場所へ引っ込んで自分のペースを取り戻したくなる。',
+        reasonTag: '【LII】1Ti, 4Se（外圧への弱さ・撤退）',
+        ieDeltas: { Ti: 2.0, Se: -3.0, Ne: 1.0, Ni: 0.5, Te: 0.5, Si: 1.0, Fe: 1.0, Fi: 1.0 },
+        positionDeltas: {
+          leading: { Ti: 2.0 }, creative: { Ne: 1.0 }, role: { Fi: 1.0 },
+          vulnerable: { Se: 3.0 }, suggestive: { Fe: 1.0 }, activating: { Si: 1.0 },
+          ignoring: { Te: 0.5 }, demonstrative: { Ni: 0.5 }
+        },
+        jpDelta: { j: 1.0, p: 0 },
+        nextId: 'q_ili_lii_lsi_split_5'
+      },
+      {
+        text: '自分から強く動くより、誰かが方向を決めて引っ張ってくれたほうが楽なことがある。「はいはい、行けばいいんでしょ」と受け入れて動く。ただし意味のない強制や感情的な騒ぎには付き合いたくない。',
+        reasonTag: '【ILI】1Ni, 5Se, 4Fe（外部からの行動推進を利用・感情的圧力は拒否）',
+        ieDeltas: { Ni: 2.5, Se: 2.0, Te: 1.5, Fe: -2.0, Ti: 0.5, Ne: 0.5, Si: 1.0, Fi: 1.0 },
+        positionDeltas: {
+          leading: { Ni: 2.5 }, creative: { Te: 1.5 }, role: { Si: 1.0 },
+          vulnerable: { Fe: 2.0 }, suggestive: { Se: 2.0 }, activating: { Fi: 1.0 },
+          ignoring: { Ne: 0.5 }, demonstrative: { Ti: 0.5 }
+        },
+        jpDelta: { j: 0, p: 2.0 },
+        nextId: 'q_ili_lii_lsi_split_5'
+      },
+      {
+        text: '「うるさい！」「急かすな！」と内心、あるいは実際にキレたくなる。自分の領域やルールに外部から勝手に踏み込まれること自体が許せず、必要なら相手を押し返して自分の主導権を取り戻したくなる。',
+        reasonTag: '【LSI】1Ti, 2Se（外圧への対抗・領域防衛・主導権奪還）',
+        ieDeltas: { Ti: 3.0, Se: 3.0, Ne: -1.5, Si: 1.0, Te: 1.0, Ni: 0.5, Fe: 0.5, Fi: 1.0 },
+        positionDeltas: {
+          leading: { Ti: 3.0 }, creative: { Se: 3.0 }, role: { Fi: 1.0 },
+          vulnerable: { Ne: 1.5 }, suggestive: { Fe: 0.5 }, activating: { Ni: 0.5 },
+          ignoring: { Te: 1.0 }, demonstrative: { Si: 1.0 }
+        },
+        jpDelta: { j: 2.5, p: 0 },
+        nextId: 'q_ili_lii_lsi_split_5'
+      }
+    ]
+  },
+  // ==========================================================================
+  // 【ILI vs LII vs LSI 専用設問5】
+  // 理論と現実への接続
+  // ==========================================================================
+  q_ili_lii_lsi_split_5: {
+    id: 'q_ili_lii_lsi_split_5',
+    categoryTag: '🔧 理論・構造・現実への落とし込み',
+    type: 'standard',
+    text: '自分なりの理論や仕組みを作る時、「正しい構造」をどう扱う感覚が一番近い？',
+    options: [
+      {
+        text: 'まず全体の概念や関係性を整理し、「どの条件なら成立するのか」「例外は何か」まで含めて一貫した体系を作りたい。実用化する時も、その体系から矛盾なく具体的な仕様へ落としていく。',
+        reasonTag: '【LII】1Ti, 2Ne, 8Te（普遍構造→条件分岐→具体化）',
+        ieDeltas: { Ti: 3.5, Ne: 2.5, Te: 1.5, Ni: 0.5, Se: -1.5, Si: 0.5, Fe: 0.5, Fi: 1.0 },
+        positionDeltas: {
+          leading: { Ti: 3.5 }, creative: { Ne: 2.5 }, role: { Fi: 1.0 },
+          vulnerable: { Se: 1.5 }, suggestive: { Fe: 0.5 }, activating: { Si: 0.5 },
+          ignoring: { Te: 1.5 }, demonstrative: { Ni: 0.5 }
+        },
+        jpDelta: { j: 1.5, p: 0 },
+        nextId: 'result'
+      },
+      {
+        text: '理論そのものを完成させることより、「この考え方を使うと今後どうなるか」を見る。時間が経って状況が変われば、同じ理論に固執せず、その時点で最も現実的な予測や判断ができる形に更新していく。',
+        reasonTag: '【ILI】1Ni, 2Te, 8Ti（理論より時間軸・予測・実利）',
+        ieDeltas: { Ni: 3.5, Te: 2.5, Ti: 1.5, Ne: 0.5, Se: 0.5, Si: 1.0, Fe: -0.5, Fi: 0.5 },
+        positionDeltas: {
+          leading: { Ni: 3.5 }, creative: { Te: 2.5 }, role: { Si: 1.0 },
+          vulnerable: { Fe: 0.5 }, suggestive: { Se: 0.5 }, activating: { Fi: 0.5 },
+          ignoring: { Ne: 0.5 }, demonstrative: { Ti: 1.5 }
+        },
+        jpDelta: { j: 0, p: 2.0 },
+        nextId: 'result'
+      },
+      {
+        text: '理論を実際のルール・手順・配置・役割分担などに落とし込み、現場でブレずに機能する形へ固定したい。何をどう動かせば結果が変わるのかまで具体化し、一度決めた基準は簡単には変更しない。',
+        reasonTag: '【LSI】1Ti, 2Se, 8Si（論理→具体的ルール・配置・運用）',
+        ieDeltas: { Ti: 3.5, Se: 3.0, Si: 1.5, Te: 1.0, Ne: -2.0, Ni: 0.5, Fe: 0.5, Fi: 1.0 },
+        positionDeltas: {
+          leading: { Ti: 3.5 }, creative: { Se: 3.0 }, role: { Fi: 1.0 },
+          vulnerable: { Ne: 2.0 }, suggestive: { Fe: 0.5 }, activating: { Ni: 0.5 },
+          ignoring: { Te: 1.0 }, demonstrative: { Si: 1.5 }
+        },
+        jpDelta: { j: 2.5, p: 0 },
+        nextId: 'result'
+      }
+    ]
+  },
+  q_darling_liar: {
+    id: "q_darling_liar",
+    categoryTag: "🥺💕 突発襲来",
+    type: "text_input",
+    text: "🥺『ねぇ、ダーリン♡\n嘘をつく人ってどう思う？』",
+    nextId: "q_darling_intercom",
+    options: [
+      {
+        text: "次へ",
+        reasonTag: "微加点（何を入力しても）",
+        ieDeltas: { Fi: 0.5, Fe: 0.5 },
+        positionDeltas: { },
+        jpDelta: { j: 0, p: 0 },
+        nextId: "q_darling_intercom",
+      }
+    ]
+  },
+  q_darling_intercom: {
+    id: "q_darling_intercom",
+    categoryTag: "🥺💕 突発襲来",
     type: "standard",
-    text: "課題や環境に向き合う時、あなたが一番自然にとる姿勢は？",
+    text: "（ピンポーン）\nダーリンちゃん「ねぇ、ダーリン♡\n……ねぇ、一緒に住まない？」",
     options: [
       {
-        // Ni
-        text: "目の前の出来事から少し距離を取り、この先どうなっていくのかを考える。出来事のつながりや全体の意味を、時間の流れから捉えようとする。",
-        reasonTag: "【Ni】IEI, ILI, EIE, LIE",
-        ieDeltas: { Ni: 3.0 },
-        positionDeltas: { leading: { Ni: 2.5 }, creative: { Ni: 2.5 } },
+        text: "はい、住みます……♡",
+        reasonTag: "ダーリンちゃんと一緒に住む",
+        ieDeltas: { Ni: 2.0, Se: 2.0 },
+        positionDeltas: {
+          leading: { Ni: 2.0 },
+          creative: { Ni: 2.0 },
+          suggestive: { Se: 2.0 },
+          activating: { Se: 2.0 },
+        },
         jpDelta: { j: 0, p: 0 },
-        nextId: "q_romantic_style",
+        nextId: "result",
+        isDarlingEnding: true
       },
       {
-        // Ne
-        text: "一つの答えに決めつけず、別の可能性や見方を探す。「もっと良くするには？」と考え、新しいアイデアを現実の課題や理想の未来につなげる。",
-        reasonTag: "【Ne】ILE, IEE, LII, EII",
-        ieDeltas: { Ne: 3.0 },
-        positionDeltas: { leading: { Ne: 2.5 }, creative: { Ne: 2.5 } },
+        text: "110番に通報する",
+        reasonTag: "常識的対応",
+        ieDeltas: { },
+        positionDeltas: { },
         jpDelta: { j: 0, p: 0 },
-        nextId: "q_romantic_style",
-      },
-      {
-        // Si
-        text: "イライラや働きすぎなどのモヤモヤ・不快感を速やかに解消し、自分や周囲が無理なく過ごせる穏やかな空間・条件を整える。",
-        reasonTag: "【Si】SEI, SLI, ESE, LSE",
-        ieDeltas: { Si: 3.0 },
-        positionDeltas: { leading: { Si: 2.5 }, creative: { Si: 2.5 } },
-        jpDelta: { j: 0, p: 0 },
-        nextId: "q_romantic_style",
-      },
-      {
-        // Se
-        text: "対立や障害から逃げず、自分の意志で決定して果断に行動する。面倒な片付けや管理作業も、責任を果たして力技で完遂する。",
-        reasonTag: "【Se】SEE, SLE, ESI, LSI",
-        ieDeltas: { Se: 3.0 },
-        positionDeltas: { leading: { Se: 2.5 }, creative: { Se: 2.5 } },
-        jpDelta: { j: 2.0, p: 0 }, // SeのみJ加算
-        nextId: "q_romantic_style",
-      },
-    ],
-  },
+        nextId: "result",
+      }
+    ]
+  }
+};
 
-  // ==========================================================================
-  // 【設問3】ロマンチック・スタイル（Ni / Ne / Si / Se 軸）4択
-  // ※保護者のお世話嫌い対策＆Se（侵略者）のパワーゲームを厳密化
-  // ==========================================================================
-  q_romantic_style: {
-    id: "q_romantic_style",
-    categoryTag: "🧭 対人・ロマンチック・スタイル（第3問：関係性）",
-    type: "standard",
-    text: "親しい人やパートナーとの「理想的な関わり方や距離感」に一番近いのは？",
-    options: [
-      {
-        // 侵略者（Se軸）
-        text: "自分にとって大切なことや譲れない基準を持っている。必要な場面では相手に合わせるだけでなく、自分の意思も通して関係を築きたい。",
-        reasonTag: "【侵略者】Se軸（SEE, SLE, ESI, LSI）",
-        ieDeltas: { Se: 3.0 },
-        positionDeltas: {
-          leading: { Se: 2.5 },
-          creative: { Se: 2.5 },
-          activating: { Ni: 1.5 },
-          suggestive: { Ni: 1.5 },
-        },
-        jpDelta: { j: 1.0, p: 0 }, // Se軸なのでJ加算
-        nextId: "q_suggestive_mobilizing",
+export const DARLING_INTERCOM = {
+  id: "q_darling_intercom",
+  categoryTag: "🥺💕 突発襲来",
+  type: "standard",
+  text: "（ピンポーン）\nダーリンちゃん「ねぇ、ダーリン♡\n嘘をつく人ってどう思う？」\n\n「……ねぇ、一緒に住まない？」",
+  options: [
+    {
+      text: "はい、住みます……♡",
+      reasonTag: "ダーリンちゃんと一緒に住む",
+      ieDeltas: { Ni: 2.0, Se: 2.0 },
+      positionDeltas: {
+        leading: { Ni: 2.0 },
+        creative: { Ni: 2.0 },
+        suggestive: { Se: 2.0 },
+        activating: { Se: 2.0 },
       },
-      {
-        // 犠牲者（Ni軸）
-        text: "最初は好意を疑いがち。力や強い軸を持つ相手に惹かれ、相手の優越感や試練を受け止めながら引き寄せられる関係を好む。",
-        reasonTag: "【犠牲者】Ni軸（IEI, ILI, EIE, LIE）",
-        ieDeltas: { Ni: 3.0 },
-        positionDeltas: {
-          leading: { Ni: 2.5 },
-          creative: { Ni: 2.5 },
-          activating: { Se: 1.5 },
-          suggestive: { Se: 1.5 },
-        },
-        jpDelta: { j: 0, p: 0 },
-        nextId: "q_suggestive_mobilizing",
-      },
-      {
-        // 子ども（Ne軸）
-        text: "面白い話や新しい発想を共有しながら、楽しく関係を広げていきたい。自分では気づかなかった可能性を示してくれたり、興味を広げてくれる相手に惹かれる。",
-        reasonTag: "【子ども】Ne軸（ILE, IEE, LII, EII）",
-        ieDeltas: { Ne: 3.0 },
-        positionDeltas: {
-          leading: { Ne: 2.5 },
-          creative: { Ne: 2.5 },
-          activating: { Si: 1.5 },
-          suggestive: { Si: 1.5 },
-        },
-        jpDelta: { j: 0, p: 0 },
-        nextId: "q_suggestive_mobilizing",
-      },
-      {
-        // 保護者（Si軸）※お世話嫌いなSe軸（SLE/ESI）が誤選しないよう、日常ケア・世話焼き感を前面に出す
-        text: "自分や周りが不快にならず、心地よく過ごせる状態を大切にする。体調や好み、ちょっとした不快感によく気づき、その場に合わせて環境や過ごし方を自然に調整したい。",
-        reasonTag: "【保護者】Si軸（SEI, SLI, ESE, LSE）",
-        ieDeltas: { Si: 3.0 },
-        positionDeltas: {
-          leading: { Si: 2.5 },
-          creative: { Si: 2.5 },
-          activating: { Ne: 1.5 },
-          suggestive: { Ne: 1.5 },
-        },
-        jpDelta: { j: 0, p: 0 },
-        nextId: "q_suggestive_mobilizing",
-      },
-    ],
-  },
-
-  q_suggestive_mobilizing: {
-    id: "q_suggestive_mobilizing",
-    categoryTag: "✨ 無意識の欲求（複数選択可）",
-    type: "multiple",
-    text: "あなたが「こういう風にしてもらえるとすごく助かる」「自然と惹かれる・安心する」と感じるものを**すべて**選んでください。",
-    nextId: "q_mobilizing",
-    options: [
-      {
-        text: "考えているだけで終わらず、まず動いてみるきっかけがほしい。具体的な行動や挑戦に誘ってもらえると、自分一人では動き出しにくいことにも取り組みやすい。",
-        reasonTag: "【Ni主導 → Se暗示】ILI・IEI",
-        ieDeltas: { Ni: 1.5, Se: 1.5 },
-        positionDeltas: { leading: { Ni: 1.0 }, suggestive: { Se: 5.0 }, activating: { Se: 3.0 } },
-        jpDelta: { j: 0, p: 1.0 },
-      },
-      {
-        text: "目の前のことを進めるだけでなく、この先どうなるのか、どこへ向かうのかを示してほしい。今の行動がどんな未来につながるのか分かると、進む方向を決めやすい。",
-        reasonTag: "【Se主導 → Ni暗示】SLE・SEE",
-        ieDeltas: { Se: 1.5, Ni: 1.5 },
-        positionDeltas: { leading: { Se: 1.0 }, suggestive: { Ni: 5.0 }, activating: { Ni: 3.0 }},
-        jpDelta: { j: 0, p: 1.0 },
-      },
-      {
-        text: "今の心地よさを大切にしながら、自分では思いつかない新しい楽しみや可能性も教えてほしい。「こんなのもあるよ」と気軽に提案してもらえると嬉しい。",
-        reasonTag: "【Si主導 → Ne暗示】SEI・SLI",
-        ieDeltas: { Si: 1.5, Ne: 1.5 },
-        positionDeltas: { leading: { Si: 1.0 }, suggestive: { Ne: 5.0 }, activating: { Ne: 3.0 } },
-        jpDelta: { j: 0, p: 1.0 },
-      },
-      {
-        text: "新しいことを考えたり試したりする一方で、自分の体調や本当の欲求には気づきにくい。安心して過ごせる環境を整えてくれたり、休息や心地よさを気にかけてもらえると助かる。",
-        reasonTag: "【Ne主導 → Si暗示】ILE・IEE",
-        ieDeltas: { Ne: 1.5, Si: 1.5 },
-        positionDeltas: { leading: { Ne: 1.0 }, suggestive: { Si: 5.0 }, activating: { Si: 3.0 } },
-        jpDelta: { j: 0, p: 1.0 },
-      },
-      {
-        text: "効率や成果だけでなく、人との信頼関係や大切な気持ちも知りたい。自分と相手がどういう関係なのか、何を大切にしているのかを分かりやすく示してもらえると安心する。",
-        reasonTag: "【Te主導 → Fi暗示】LIE・LSE",
-        ieDeltas: { Te: 1.5, Fi: 1.5 },
-        positionDeltas: { leading: { Te: 1.0 }, suggestive: { Fi: 5.0 }, activating: { Fi: 3.0 } },
-        jpDelta: { j: 1.0, p: 0 },
-      },
-      {
-        text: "自分が大切だと思うことを、現実の中でも実現する方法を知りたい。具体的に何をすれば役に立つのか、成果につながるのかを分かりやすく教えてもらえると助かる。",
-        reasonTag: "【Fi主導 → Te暗示】ESI・EII",
-        ieDeltas: { Fi: 1.5, Te: 1.5 },
-        positionDeltas: { leading: { Fi: 1.0 }, suggestive: { Te: 5.0 }, activating: { Te: 3.0 }},
-        jpDelta: { j: 1.0, p: 0 },
-      },
-      {
-        text: "筋道を立てて考えるだけでなく、明るく楽しい雰囲気や感情の動きにも触れたい。面白い話やノリのいい反応で、気軽に場を盛り上げてもらえると嬉しい。",
-        reasonTag: "【Ti主導 → Fe暗示】LII・LSI",
-        ieDeltas: { Ti: 1.5, Fe: 1.5 },
-        positionDeltas: { leading: { Ti: 1.0 }, suggestive: { Fe: 5.0 }, activating: { Fe: 3.0 }},
-        jpDelta: { j: 1.0, p: 0 },
-      },
-      {
-        text: "物事を体系立てて整理し、概念を分かりやすく説明してくれる人を頼りにしたい。自分の行動がなぜ意味を持つのか、筋道を立てて説明してもらえると安心して動ける。",
-        reasonTag: "【Fe主導 → Ti暗示】EIE・ESE",
-        ieDeltas: { Fe: 1.5, Ti: 1.5 },
-        positionDeltas: { leading: { Fe: 1.0 }, suggestive: { Ti: 5.0 }, activating: { Ti: 3.0 }},
-        jpDelta: { j: 1.0, p: 0 },
-      },
-    ],
-  },
-  q_mobilizing: {
-    id: "q_mobilizing",
-    categoryTag: "🔥 活性化（複数選択可）",
-    type: "multiple",
-    text: "あなたが「これを示してもらえると動きやすい」「これを提案されるとやる気が出る、助かる」けど、貰いすぎても過剰に感じるものを**すべて**選んでください。",
-    nextId: "result",
-    options: [
-      {
-        text: "考えたことを実際の行動につなげたい。自分だけで考え続けるより、「まずやってみよう」と背中を押してもらえたり、挑戦するきっかけを与えてもらえると動きやすい。",
-        reasonTag: "【Ni補助 → Se動員】LIE・EIE",
-        ieDeltas: { Ni: 1.0, Se: 2.0 },
-        positionDeltas: {
-          creative: { Ni: 1.0 },
-          activating: { Se: 5.0 },
-          suggestive: { Se: 3.0 },
-        },
-        jpDelta: { j: 1.0, p: 0 },
-      },
-      {
-        text: "自分の目的に向かって進みたいが、今どう動くべきか迷ったり焦ったりすることがある。この先どうなりそうか、今は急ぐべきかを示してもらえると、落ち着いて判断しやすい。",
-        reasonTag: "【Se補助 → Ni動員】LSI・ESI",
-        ieDeltas: { Se: 1.0, Ni: 2.0 },
-        positionDeltas: {
-          creative: { Se: 1.0 },
-          activating: { Ni: 5.0 },
-          suggestive: { Ni: 3.0 },
-        },
-        jpDelta: { j: 1.0, p: 0 },
-      },
-      {
-        text: "いつものやり方を大切にしつつも、もっと便利にしたり良くしたりできる方法も知りたい。「こんなやり方もあるよ」と、新しい可能性や改善案を示してもらえると試してみたくなる。",
-        reasonTag: "【Si補助 → Ne動員】ESE・LSE",
-        ieDeltas: { Si: 1.0, Ne: 2.0 },
-        positionDeltas: {
-          creative: { Si: 1.0 },
-          activating: { Ne: 5.0 },
-          suggestive: { Ne: 3.0 },
-        },
-        jpDelta: { j: 1.0, p: 0 },
-      },
-      {
-        text: "物事の可能性や理想について考えるのは好きだが、自分の疲れや緊張には気づきにくい。リラックスできる環境を整えてもらったり、楽しい過ごし方を提案してもらえると助かる。",
-        reasonTag: "【Ne補助 → Si動員】LII・EII",
-        ieDeltas: { Ne: 1.0, Si: 2.0 },
-        positionDeltas: {
-          creative: { Ne: 1.0 },
-          activating: { Si: 5.0 },
-          suggestive: { Si: 3.0 },
-        },
-        jpDelta: { j: 1.0, p: 0 },
-      },
-      {
-        text: "人の気持ちや好意を自分だけで読み取るより、相手から分かりやすく示してもらえると安心する。自分が大切にされていることや、相手がどう感じているのかを自然に伝えてもらえると、信頼して関係を築きやすい。",
-        reasonTag: "【Te補助 → Fi動員】ILI・SLI",
-        ieDeltas: { Te: 1.0, Fi: 2.0 },
-        positionDeltas: {
-          creative: { Te: 1.0 },
-          activating: { Fi: 5.0 },
-          suggestive: { Fi: 3.0 },
-        },
-        jpDelta: { j: 0, p: 1.0 },
-      },
-      {
-        text: "自分が興味を持っていることについて、役立つ知識や具体的な方法を教えてもらえると安心する。自分だけで情報を選ぶより、詳しい人から『これが有効だよ』と示してもらえると動きやすい。",
-        reasonTag: "【Fi補助 → Te動員】IEE・SEE",
-        ieDeltas: { Fi: 1.0, Te: 2.0 },
-        positionDeltas: {
-          creative: { Fi: 1.0 },
-          activating: { Te: 5.0 },
-          suggestive: { Te: 3.0 },
-        },
-        jpDelta: { j: 0, p: 1.0 },
-      },
-      {
-        text: "考えを整理したり可能性を考えたりするだけでなく、前向きで明るい反応を返してもらえると動きやすい。「それ面白そう」「やってみよう」と気持ちを明るくしてくれるような雰囲気があると嬉しい。",
-        reasonTag: "【Ti補助 → Fe動員】ILE・SLE",
-        ieDeltas: { Ti: 1.0, Fe: 2.0 },
-        positionDeltas: {
-          creative: { Ti: 1.0 },
-          activating: { Fe: 5.0 },
-          suggestive: { Fe: 3.0 },
-        },
-        jpDelta: { j: 0, p: 1.0 },
-      },
-      {
-        text: "考えや信念が混乱したとき、物事を筋道立てて整理してもらえると安心する。自分の行動や考えが、どんな理屈につながっているのかを分かりやすく説明してもらえると納得しやすい。",
-        reasonTag: "【Fe補助 → Ti動員】IEI・SEI",
-        ieDeltas: { Fe: 1.0, Ti: 2.0 },
-        positionDeltas: {
-          creative: { Fe: 1.0 },
-          activating: { Ti: 5.0 },
-          suggestive: { Ti: 3.0 },
-        },
-        jpDelta: { j: 0, p: 1.0 },
-      },
-    ],
-  },
+      jpDelta: { j: 0, p: 0 },
+      nextId: "result", 
+      isDarlingEnding: true
+    },
+    {
+      text: "110番に通報する",
+      reasonTag: "常識的対応",
+      ieDeltas: { },
+      positionDeltas: { },
+      jpDelta: { j: 0, p: 0 },
+      nextId: "result",
+    }
+  ]
 };

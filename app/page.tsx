@@ -35,6 +35,8 @@ import {
 } from "@/lib/socionics";
 
 import { QUESTIONS, Option, Question } from "@/lib/questions";
+import { SOCIONICS_16TYPE_5QUESTIONS_V2 } from "@/lib/questions_v2";
+import { LogOut } from "lucide-react";
 
 const POSITIONS_ARRAY: ModelPosition[] = [
   "leading",
@@ -48,9 +50,14 @@ const POSITIONS_ARRAY: ModelPosition[] = [
 ];
 
 export default function App() {
-  const [step, setStep] = useState<"title" | "mbti_input" | "quiz" | "result">(
+  const [step, setStep] = useState<"title" | "mbti_input" | "quiz" | "approximate" | "result">(
     "title",
   );
+  const [approximateQIndex, setApproximateQIndex] = useState(0);
+  const [topCandidates, setTopCandidates] = useState<SocionicsType[]>([]);
+  const [isExitModalOpen, setIsExitModalOpen] = useState(false);
+  const [showDarlingEnding, setShowDarlingEnding] = useState(false);
+
   const [userName, setUserName] = useState("");
   const [rawMbtiInput, setRawMbtiInput] = useState("");
   const [detectedMbti, setDetectedMbti] = useState<string | null>(null);
@@ -141,7 +148,21 @@ export default function App() {
   const resultCardRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
 
+  // REC mode for ILI/LII/LSI
+  const [isRecMode, setIsRecMode] = useState(false);
+  const [hasSeenIliLiiLsiSplit, setHasSeenIliLiiLsiSplit] = useState(false);
+
   // MBTI抽出
+  
+  const resetState = () => {
+    
+    setIsRecMode(false);
+    setHasSeenIliLiiLsiSplit(false);
+    
+    setTopCandidates([]);
+    setShowDarlingEnding(false);
+  };
+
   const handleMbtiSubmit = () => {
     const match = rawMbtiInput.match(
       /(INTJ|INTP|INFJ|INFP|ISTJ|ISTP|ISFJ|ISFP|ENTJ|ENTP|ENFJ|ENFP|ESTJ|ESTP|ESFJ|ESFP)/i,
@@ -245,8 +266,8 @@ export default function App() {
           }
         });
       }
-      nextJ += option.jpDelta.j;
-      nextP += option.jpDelta.p;
+      nextJ += (option.jpDelta?.j || 0);
+      nextP += (option.jpDelta?.p || 0);
     });
 
     setIeScores(nextIeScores);
@@ -258,12 +279,31 @@ export default function App() {
     if (nextId && nextId !== "result" && nextId !== "end") {
       setCurrentQId(nextId);
     } else {
-      triggerConfetti();
-      setStep("result");
+      goToNextStepAfterQuiz(nextIeScores, nextPosSignatures);
     }
   };
 
   // 通常設問の選択肢ハンドリング
+  
+  const goToNextStepAfterQuiz = (
+    finalIeScores: Record<IE, number>,
+    finalPosSignatures: Record<ModelPosition, Record<IE, number>>
+  ) => {
+    const matches = calculateTypeMatches(finalIeScores, finalPosSignatures);
+    const topType = matches[0]?.type;
+
+    if (["ILI", "LII", "LSI"].includes(topType) && !hasSeenIliLiiLsiSplit) {
+      setHasSeenIliLiiLsiSplit(true);
+      setIsRecMode(true);
+      setCurrentQId("q_ili_lii_lsi_split_1");
+    } else {
+      if (currentQId !== "q_darling_intercom") { setCurrentQId("q_darling_intercom"); } else { triggerConfetti(); setStep("result"); }
+      
+      
+      
+    }
+  };
+
   const handleSelectOption = (option: Option) => {
     const qText = QUESTIONS[currentQId]?.text || "特殊アクション";
     const newLogs = [
@@ -315,15 +355,36 @@ export default function App() {
     }
 
     setJpScore((prev) => ({
-      j: prev.j + option.jpDelta.j,
-      p: prev.p + option.jpDelta.p,
+      j: prev.j + (option.jpDelta?.j || 0),
+      p: prev.p + (option.jpDelta?.p || 0),
     }));
 
     if (option.nextId && option.nextId !== "result") {
       setCurrentQId(option.nextId);
     } else {
-      triggerConfetti();
-      setStep("result");
+      // テンポラリで加算後のスコアを算出
+      let finalIeScores = { ...ieScores };
+      let finalPosSignatures = JSON.parse(JSON.stringify(posSignatures));
+      
+      if (option.ieDeltas) {
+        Object.entries(option.ieDeltas).forEach(([ieKey, val]) => {
+          const ie = ieKey as IE;
+          finalIeScores[ie] = (finalIeScores[ie] || 0) + (val || 0);
+        });
+      }
+      if (option.positionDeltas) {
+        Object.entries(option.positionDeltas).forEach(([posKey, ieDeltas]) => {
+          const pos = posKey as ModelPosition;
+          if (ieDeltas) {
+            Object.entries(ieDeltas).forEach(([ieKey, delta]) => {
+              const ie = ieKey as IE;
+              finalPosSignatures[pos][ie] = (finalPosSignatures[pos][ie] || 0) + (delta || 0);
+            });
+          }
+        });
+      }
+
+      goToNextStepAfterQuiz(finalIeScores, finalPosSignatures);
     }
   };
 
@@ -343,18 +404,56 @@ export default function App() {
     const q = QUESTIONS[currentQId];
     const nextId = q?.options[0]?.nextId || "result";
     if (nextId === "result") {
-      triggerConfetti();
-      setStep("result");
+      goToNextStepAfterQuiz(ieScores, posSignatures);
     } else {
       setCurrentQId(nextId);
     }
   };
 
   // 戻るボタンのハンドリング
+  
+  const handleApproximateSelect = (selectedType: SocionicsType, text: string) => {
+    const model = MODEL_A_DEFINITIONS[selectedType];
+    if (!model) return;
+    
+    const nextIeScores = { ...ieScores };
+    const nextPosSignatures = JSON.parse(JSON.stringify(posSignatures));
+
+    const weights: Record<ModelPosition, number> = {
+      leading: 3.0, creative: 2.5, role: 1.0, vulnerable: -1.0,
+      suggestive: 1.0, activating: 1.5, ignoring: 0, demonstrative: 1.0,
+    };
+    
+    Object.entries(model).forEach(([posStr, ieStr]) => {
+      const pos = posStr as ModelPosition;
+      const ie = ieStr as IE;
+      const w = weights[pos];
+      nextIeScores[ie] = (nextIeScores[ie] || 0) + w;
+      nextPosSignatures[pos][ie] = (nextPosSignatures[pos][ie] || 0) + w;
+    });
+
+    setIeScores(nextIeScores);
+    setPosSignatures(nextPosSignatures);
+
+    const qText = SOCIONICS_16TYPE_5QUESTIONS_V2[approximateQIndex].text;
+    setActionLogs((prev) => [...prev, { q: qText, a: text, reason: "近似タイプ診断" }]);
+
+    if (approximateQIndex + 1 < SOCIONICS_16TYPE_5QUESTIONS_V2.length) {
+      setApproximateQIndex((prev) => prev + 1);
+    } else {
+      triggerConfetti();
+      setStep("result");
+    }
+  };
+
   const handleGoBack = () => {
     if (history.length === 0) {
       setStep("mbti_input");
       return;
+    }
+    if (currentQId.startsWith("q_ili_lii_lsi_split")) {
+      setIsRecMode(false);
+      setHasSeenIliLiiLsiSplit(false);
     }
     const last = history[history.length - 1];
     setHistory((prev) => prev.slice(0, prev.length - 1));
@@ -410,7 +509,10 @@ export default function App() {
   };
 
   // 16タイプのModel A 構造との適合度計算アルゴリズム
-  const calculateTypeMatches = (): Array<{
+  const calculateTypeMatches = (
+    overrideIeScores = ieScores,
+    overridePosSignatures = posSignatures
+  ): Array<{
     type: SocionicsType;
     score: number;
   }> => {
@@ -422,8 +524,8 @@ export default function App() {
 
       POSITIONS_ARRAY.forEach((pos) => {
         const targetIE = def[pos];
-        const iePoints = ieScores[targetIE] || 0;
-        const posSigPoints = posSignatures[pos]?.[targetIE] || 0;
+        const iePoints = overrideIeScores[targetIE] || 0;
+        const posSigPoints = overridePosSignatures[pos]?.[targetIE] || 0;
 
         let weight = 1.0;
         if (pos === "leading") weight = 2.5;
@@ -477,13 +579,32 @@ export default function App() {
       .sort((a, b) => b.score - a.score);
   };
 
+  const isGlitchMode = step === "quiz" && isRecMode;
+
   return (
-    <div className="min-h-screen bg-watercolor-dream text-slate-800 font-sans relative overflow-x-hidden flex flex-col justify-between selection:bg-pink-500 selection:text-slate-900">
+    <div className={`min-h-screen relative overflow-x-hidden flex flex-col justify-between font-sans transition-colors duration-1000 ${
+      isGlitchMode 
+        ? 'bg-black text-red-500 selection:bg-red-900 selection:text-red-100'
+        : 'bg-watercolor-dream text-slate-800 selection:bg-pink-500 selection:text-slate-900'
+    }`}>
+      {isGlitchMode && (
+        <div className="fixed inset-0 pointer-events-none z-[100] border-[8px] border-red-600/30 flex p-6">
+          <div className="absolute top-6 left-6 text-red-500 font-mono font-bold animate-pulse text-xl flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full bg-red-500" /> REC
+          </div>
+          <div className="absolute bottom-6 right-6 text-red-500/50 font-mono text-sm">
+            INTERCOM OVERRIDE ACTIVE
+          </div>
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz4KPC9zdmc+')] opacity-20" />
+        </div>
+      )}
+
       {/* 水彩風ぼかしグラデーション背景 */}
-      <div className="fixed inset-0 watercolor-blobs z-0"></div>
+      {!isGlitchMode && <div className="fixed inset-0 watercolor-blobs z-0"></div>}
 
       {/* 舞い散る花びら */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      {!isGlitchMode && (
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         {[...Array(12)].map((_, i) => (
           <div
             key={i}
@@ -498,9 +619,10 @@ export default function App() {
           />
         ))}
       </div>
+      )}
 
       {/* 🐛 LSI芋虫マスコット */}
-      {caterpillarVisible && (
+      {!isGlitchMode && caterpillarVisible && (
         <div
           className="fixed bottom-10 z-50 caterpillar-walk"
           style={{ pointerEvents: "none" }}
@@ -528,7 +650,7 @@ export default function App() {
       )}
 
       {/* ヘッダー */}
-      <header className="relative z-10 w-full max-w-4xl mx-auto p-4 flex items-center justify-between">
+      <header className={`relative z-10 w-full max-w-4xl mx-auto p-4 flex items-center justify-between ${isGlitchMode ? 'opacity-0 pointer-events-none' : ''}`}>
         <div className="flex items-center gap-2.5">
           <Flower2
             className="w-6 h-6 text-pink-600 animate-spin"
@@ -686,6 +808,42 @@ export default function App() {
           )}
 
           {/* STEP 3: 質問・ミニゲーム設問画面 */}
+          
+          {step === "approximate" && (
+            <motion.div
+              key="approximate"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, y: -15 }}
+              className="w-full max-w-2xl"
+            >
+              <div className="glass-card p-6 md:p-9 rounded-3xl border border-sky-300/50 shadow-2xl relative overflow-hidden">
+                <div className="inline-block px-3.5 py-1 rounded-full bg-sky-50 border border-sky-300/50 text-sky-600 text-xs font-bold mb-4">
+                  🔍 最終調整：近似タイプ決戦 ({approximateQIndex + 1}/5)
+                </div>
+                <p className="font-serif text-lg md:text-xl font-medium leading-relaxed mb-8 text-slate-800 whitespace-pre-wrap">
+                  {SOCIONICS_16TYPE_5QUESTIONS_V2[approximateQIndex].text.replace(/{NAME}/g, displayName)}
+                </p>
+                <div className="space-y-3">
+                  {SOCIONICS_16TYPE_5QUESTIONS_V2[approximateQIndex].options
+                    .filter((opt) => topCandidates.includes(opt.result as SocionicsType))
+                    .map((opt, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleApproximateSelect(opt.result as SocionicsType, opt.text)}
+                        className="w-full text-left p-5 rounded-2xl border border-slate-300 bg-slate-100/80 hover:bg-slate-200/90 hover:border-sky-400 transition-all flex items-center justify-between group shadow-md cursor-pointer"
+                      >
+                        <span className="text-sm md:text-base leading-relaxed font-normal text-slate-800">
+                          {opt.text.replace(/{NAME}/g, displayName)}
+                        </span>
+                        <Sparkles className="w-5 h-5 text-sky-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2" />
+                      </button>
+                    ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           {step === "quiz" && (
             <motion.div
               key={currentQId}
@@ -694,7 +852,26 @@ export default function App() {
               exit={{ opacity: 0, y: -15 }}
               className="w-full max-w-2xl"
             >
-              <div className="glass-card p-6 md:p-9 rounded-3xl border border-pink-300/50 shadow-2xl relative overflow-hidden">
+              <div className={`p-6 md:p-9 rounded-3xl border shadow-2xl relative overflow-hidden ${
+                isGlitchMode 
+                  ? 'bg-red-950/80 border-red-500/50 text-red-100' 
+                  : 'glass-card border-pink-300/50 text-slate-800'
+              }`}>
+                {isRecMode && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-8 p-4 bg-red-900/40 border border-red-500/50 rounded-2xl text-red-200 shadow-inner"
+                  >
+                    <div className="font-bold mb-1 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-red-400" /> Darling (Intercom Mode)
+                    </div>
+                    <div className="text-sm leading-relaxed">
+                      「あら、ダーリン。やっぱりあなた、そっち側の人間だったのね。…ふふっ、ここからは私が直接聞いてあげるわ。逃がさないから、素直に答えなさい？」
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* 🎮 独立設問：片付けミニゲーム画面 (Q_game_trash) */}
 
                 {/* ✨ 複数選択設問 (multiple) */}
@@ -1050,12 +1227,18 @@ export default function App() {
                   /* 標準の心理質問 */
                   <div>
                     {currentQ.categoryTag && (
-                      <div className="inline-block px-3.5 py-1 rounded-full bg-sky-50 border border-pink-300/50 text-pink-600 text-xs font-bold mb-4">
+                      <div className={`inline-block px-3.5 py-1 rounded-full text-xs font-bold mb-4 border ${
+                        isGlitchMode 
+                          ? 'bg-red-900/50 border-red-500/50 text-red-400' 
+                          : 'bg-sky-50 border-pink-300/50 text-pink-600'
+                      }`}>
                         {currentQ.categoryTag}
                       </div>
                     )}
 
-                    <p className="font-serif text-lg md:text-xl font-medium leading-relaxed mb-8 text-slate-800 whitespace-pre-wrap">
+                    <p className={`font-serif text-lg md:text-xl font-medium leading-relaxed mb-8 whitespace-pre-wrap ${
+                      isGlitchMode ? 'text-red-100' : 'text-slate-800'
+                    }`}>
                       {currentQ.text.replace(/{NAME}/g, displayName)}
                     </p>
 
@@ -1064,12 +1247,18 @@ export default function App() {
                         <button
                           key={idx}
                           onClick={() => handleSelectOption(opt)}
-                          className="w-full text-left p-5 rounded-2xl border border-slate-300 bg-slate-100/80 hover:bg-slate-200/90 hover:border-pink-400 transition-all flex items-center justify-between group shadow-md cursor-pointer"
+                          className={`w-full text-left p-5 rounded-2xl border transition-all flex items-center justify-between group shadow-md cursor-pointer ${
+                            isGlitchMode 
+                              ? 'bg-red-900/30 border-red-500/30 hover:bg-red-900/60 hover:border-red-500 text-red-200' 
+                              : 'border-slate-300 bg-slate-100/80 hover:bg-slate-200/90 hover:border-pink-400 text-slate-800'
+                          }`}
                         >
-                          <span className="text-sm md:text-base text-slate-800 leading-relaxed font-normal">
+                          <span className="text-sm md:text-base leading-relaxed font-normal">
                             {opt.text.replace(/{NAME}/g, displayName)}
                           </span>
-                          <Sparkles className="w-5 h-5 text-pink-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2" />
+                          <Sparkles className={`w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2 ${
+                            isGlitchMode ? 'text-red-400' : 'text-pink-500'
+                          }`} />
                         </button>
                       ))}
                     </div>
@@ -1280,7 +1469,7 @@ export default function App() {
                               const input = e.currentTarget
                                 .previousElementSibling as HTMLInputElement;
                               if (input.value) {
-                                alert("ダーリンちゃんに言い訳を送信したよ！♡");
+                                setShowDarlingEnding(true);
                                 input.value = "";
                               }
                             }}
@@ -1367,6 +1556,8 @@ export default function App() {
                     setJpScore({ j: 0, p: 0 });
                     setActionLogs([]);
                     setHistory([]);
+                    setIsRecMode(false);
+                    setHasSeenIliLiiLsiSplit(false);
                   }}
                   className="px-5 py-2.5 bg-sky-50 hover:bg-slate-100 text-slate-600 border border-slate-300 font-bold rounded-full text-xs flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer"
                 >
@@ -1378,6 +1569,99 @@ export default function App() {
           )}
         </AnimatePresence>
       </main>
+
+        {/* 退出確認モーダル */}
+        <AnimatePresence>
+          {isExitModalOpen && (
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-900/40 z-[100] flex items-center justify-center p-4 backdrop-blur-sm"
+            >
+              <motion.div 
+                initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+                className="bg-white rounded-3xl p-6 md:p-8 shadow-2xl max-w-sm w-full border border-pink-200"
+              >
+                <h3 className="font-bold text-lg md:text-xl mb-3 text-slate-800">診断を終了しますか？</h3>
+                <p className="text-sm text-slate-600 mb-8 leading-relaxed">
+                  ここまでの回答履歴はすべてリセットされ、タイトル画面へ戻ります。
+                </p>
+                <div className="flex gap-3 justify-end">
+                  <button onClick={() => setIsExitModalOpen(false)} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors cursor-pointer text-sm">
+                    キャンセル
+                  </button>
+                  <button onClick={() => { setIsExitModalOpen(false); resetState(); }} className="px-5 py-2.5 bg-pink-500 hover:bg-pink-600 text-white rounded-xl font-bold transition-colors shadow-md cursor-pointer text-sm">
+                    終了する
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ダーリンちゃん 一緒に住もう ギミック */}
+        <AnimatePresence>
+          {showDarlingEnding && (
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-red-950 z-[200] flex items-center justify-center p-4 overflow-hidden"
+            >
+              {/* ホラーな背景演出 */}
+              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz4KPC9zdmc+')] opacity-30 animate-pulse" />
+              <div className="absolute top-0 left-0 w-full h-2 bg-red-600 animate-ping" />
+              
+              <motion.div 
+                initial={{ scale: 0.8, y: 50 }} animate={{ scale: 1, y: 0 }}
+                transition={{ type: "spring", bounce: 0.5 }}
+                className="relative z-10 max-w-md w-full bg-black/80 border border-red-600/50 p-8 rounded-3xl shadow-[0_0_50px_rgba(220,38,38,0.5)] text-center"
+              >
+                <div className="text-6xl mb-6 animate-bounce">🥺</div>
+                <h2 className="text-2xl md:text-3xl font-bold text-red-500 mb-6 leading-relaxed font-serif">
+                  ねぇ、ダーリン♡<br/>
+                  一緒に住もう♡
+                </h2>
+                <p className="text-red-200/80 text-sm mb-10 leading-loose">
+                  もう言い訳は十分聞いたわ。<br/>
+                  あなたがどれだけPっぽくても、非合理でも、<br/>
+                  私が全部管理してあげるから。<br/>
+                  <br/>
+                  ……逃がさないからね？
+                </p>
+                
+                <div className="flex flex-col gap-4">
+                  <button onClick={() => {
+                      const container = document.createElement('div');
+                      container.style.position = 'fixed';
+                      container.style.inset = '0';
+                      container.style.pointerEvents = 'none';
+                      container.style.zIndex = '9999';
+                      container.style.overflow = 'hidden';
+                      document.body.appendChild(container);
+                      
+                      const msgs = ["境界線確保。侵入継続。", "領土侵犯ヲ確認。占領プロセスヲ実行中..."];
+                      
+                      for(let i=0; i<30; i++) {
+                        const cat = document.createElement('div');
+                        cat.innerHTML = '🐛<br/><div style="font-size: 10px; color: red; background: black; padding: 2px; white-space: nowrap;">' + msgs[i%2] + '</div>';
+                        cat.style.position = 'absolute';
+                        cat.style.left = Math.random() * 100 + 'vw';
+                        cat.style.top = Math.random() * 100 + 'vh';
+                        cat.style.transform = `scale(${Math.random() * 1.5 + 0.5})`;
+                        cat.style.animation = `pulse ${Math.random() + 0.5}s infinite alternate`;
+                        container.appendChild(cat);
+                      }
+                      alert("ダーリンちゃん「ふふ♡ 選択を誤ったわね♡」");
+                  }} className="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl shadow-[0_0_15px_rgba(220,38,38,0.8)] transition-all cursor-pointer">
+                    はい、住みます……♡
+                  </button>
+                  <button onClick={() => setShowDarlingEnding(false)} className="w-full py-4 bg-transparent border border-red-900 hover:bg-red-950 text-red-500/50 font-bold rounded-xl transition-all cursor-pointer">
+                    110番に通報する
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
 
       {/* フッター */}
       <footer className="relative z-10 w-full max-w-4xl mx-auto p-4 text-center text-xs text-slate-600 flex flex-col items-center gap-2">
