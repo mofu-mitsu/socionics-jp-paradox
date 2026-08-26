@@ -25,6 +25,7 @@ import {
   Volume2,
   VolumeX,
   Smartphone,
+  X,
 } from "lucide-react";
 import { toPng } from "html-to-image";
 import confetti from "canvas-confetti";
@@ -67,6 +68,8 @@ export default function App() {
   const [darlingEndingState, setDarlingEndingState] = useState<"initial" | "invading" | "police" | "fire">("initial");
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [textInputValue, setTextInputValue] = useState("");
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
 
   const [userName, setUserName] = useState("");
   const [rawMbtiInput, setRawMbtiInput] = useState("");
@@ -401,12 +404,12 @@ export default function App() {
     }
   };
 
-  const handleSelectOption = (option: Option) => {
+  const handleSelectOption = (option: Option, customText?: string) => {
     playClickSound();
     const qText = QUESTIONS[currentQId]?.text || "特殊アクション";
     const newLogs = [
       ...actionLogs,
-      { q: qText, a: option.text, reason: option.reasonTag || "" },
+      { q: qText, a: customText || option.text, reason: option.reasonTag || "" },
     ];
 
     // 履歴保存
@@ -585,10 +588,15 @@ export default function App() {
         width: targetWidth,
         pixelRatio: 2,
       });
-      const link = document.createElement("a");
-      link.download = `socio_modelA_result_${new Date().getTime()}.png`;
-      link.href = dataUrl;
-      link.click();
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        setGeneratedImageUrl(dataUrl);
+      } else {
+        const link = document.createElement("a");
+        link.download = `socio_modelA_result_${new Date().getTime()}.png`;
+        link.href = dataUrl;
+        link.click();
+      }
     } catch (err) {
       console.error("Failed to export image:", err);
       alert("画像保存に失敗しました。スクリーンショットをご利用ください。");
@@ -698,12 +706,59 @@ export default function App() {
 
   const isGlitchMode = step === "quiz" && isRecMode;
 
+  const getProgressPercentage = () => {
+    const estimatedTotal = 20; // 暫定の最大質問数
+    const current = history.length + 1;
+    let percentage = Math.round((current / estimatedTotal) * 100);
+    if (percentage > 99) percentage = 99;
+    return percentage;
+  };
+
+  const shuffledApproximateOptions = useMemo(() => {
+    if (step !== "approximate") return [];
+    const opts = SOCIONICS_16TYPE_5QUESTIONS_V2[approximateQIndex].options
+      .filter((opt) => topCandidates.includes(opt.result as SocionicsType));
+    
+    // Fisher-Yates shuffle
+    const shuffled = [...opts];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }, [step, approximateQIndex, topCandidates]);
+
   return (
     <div className={`min-h-screen relative overflow-x-hidden flex flex-col justify-between font-sans transition-colors duration-1000 ${
       isGlitchMode 
         ? 'bg-black text-red-500 selection:bg-red-900 selection:text-red-100'
         : 'bg-watercolor-dream text-slate-800 selection:bg-pink-500 selection:text-slate-900'
     }`}>
+      <AnimatePresence>
+        {generatedImageUrl && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          >
+            <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+              <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-2xl shrink-0">
+                <p className="font-bold text-slate-800 text-sm">画像を長押しして保存してください</p>
+                <button
+                  onClick={() => setGeneratedImageUrl(null)}
+                  className="p-2 bg-slate-200 rounded-full hover:bg-slate-300 transition-colors"
+                >
+                  <X className="w-4 h-4 text-slate-700" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 bg-slate-100 flex justify-center rounded-b-2xl">
+                <img src={generatedImageUrl} alt="診断結果" className="w-full h-auto rounded-lg shadow-md" />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* サウンドコントロール */}
       <button 
         onClick={() => setIsSoundEnabled(!isSoundEnabled)} 
@@ -787,22 +842,33 @@ export default function App() {
         </div>
 
         {step === "quiz" && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4 flex-wrap">
             <button
               onClick={handleGoBack}
               className="px-3.5 py-1.5 bg-slate-100/90 hover:bg-slate-200 text-slate-800 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all border border-pink-400/50 shadow-md"
             >
               <ArrowLeft className="w-4 h-4 text-pink-600" />
-              前の一問に戻る
+              前へ
             </button>
-
             <button
               onClick={handleSkipQuestion}
               className="px-3 py-1.5 bg-slate-100/60 hover:bg-slate-200/80 text-slate-600 rounded-full text-xs flex items-center gap-1 transition-colors border border-slate-400/40"
             >
               <HelpCircle className="w-3.5 h-3.5" />
-              <span>ピンと来ない</span>
+              <span>スキップ</span>
             </button>
+            
+            <div className="flex items-center gap-2 flex-1 min-w-[120px] max-w-[200px]">
+              <div className="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden border border-slate-300">
+                <div 
+                  className="bg-pink-400 h-full transition-all duration-500 ease-out"
+                  style={{ width: `${getProgressPercentage()}%` }}
+                />
+              </div>
+              <div className="text-xs font-bold text-slate-500 w-[32px] text-right">
+                {getProgressPercentage()}%
+              </div>
+            </div>
           </div>
         )}
       </header>
@@ -1027,9 +1093,7 @@ export default function App() {
                   {SOCIONICS_16TYPE_5QUESTIONS_V2[approximateQIndex].text.replace(/{NAME}/g, displayName)}
                 </p>
                 <div className="space-y-3">
-                  {SOCIONICS_16TYPE_5QUESTIONS_V2[approximateQIndex].options
-                    .filter((opt) => topCandidates.includes(opt.result as SocionicsType))
-                    .map((opt, idx) => (
+                  {shuffledApproximateOptions.map((opt, idx) => (
                       <button
                         key={idx}
                         onClick={() => handleApproximateSelect(opt.result as SocionicsType, opt.text)}
@@ -1607,11 +1671,16 @@ export default function App() {
                         className="w-full p-4 rounded-xl border border-red-500/50 bg-red-950/50 text-red-100 placeholder-red-500/30 focus:outline-none focus:ring-2 focus:ring-red-500"
                         rows={4}
                         placeholder="（正直に書きなさい……）"
+                        value={textInputValue}
+                        onChange={(e) => setTextInputValue(e.target.value)}
                       ></textarea>
                     </div>
                     <div className="flex justify-end">
                        <button
-                          onClick={() => handleSelectOption(currentQ.options[0])}
+                          onClick={() => {
+                             handleSelectOption(currentQ.options[0], textInputValue || "（無言）");
+                             setTextInputValue("");
+                          }}
                           className="px-6 py-3 rounded-xl font-bold transition-all bg-red-600 hover:bg-red-500 text-white cursor-pointer shadow-[0_0_15px_rgba(220,38,38,0.5)]"
                         >
                           {currentQ.options[0].text}
@@ -1698,7 +1767,7 @@ export default function App() {
                             <span className="font-semibold text-sky-400 underline decoration-sky-500/30">
                               {detectedMbti}
                             </span>
-                            』という演出……つまり、ただの仮面だったのかしら？♡
+                            』よね♡
                           </>
                         ) : (
                           <>（あら……自認すら隠して、本音を覆い隠すタイプなのね♡）</>
