@@ -77,7 +77,7 @@ const goToNextFunc = `
     const matches = calculateTypeMatches(finalIeScores, finalPosSignatures);
     const topType = matches[0]?.type;
 
-    if (["ILI", "LII", "LSI"].includes(topType) && !hasSeenIliLiiLsiSplit) {
+    if (["ILI", "LII"].includes(topType) && !hasSeenIliLiiLsiSplit) {
       setHasSeenIliLiiLsiSplit(true);
       setIsRecMode(true);
       setCurrentQId("q_ili_lii_lsi_split_1");

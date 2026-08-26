@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Sparkles,
@@ -22,6 +22,9 @@ import {
   BarChart2,
   Clock,
   RotateCcw,
+  Volume2,
+  VolumeX,
+  Smartphone,
 } from "lucide-react";
 import { toPng } from "html-to-image";
 import confetti from "canvas-confetti";
@@ -50,11 +53,15 @@ const POSITIONS_ARRAY: ModelPosition[] = [
 ];
 
 export default function App() {
-  const [step, setStep] = useState<"title" | "mbti_input" | "quiz" | "approximate" | "result">(
+  const [step, setStep] = useState<"title" | "mbti_input" | "quiz" | "approximate" | "approximate_select" | "result">(
     "title",
   );
   const [approximateQIndex, setApproximateQIndex] = useState(0);
   const [topCandidates, setTopCandidates] = useState<SocionicsType[]>([]);
+  const [selectedApproxTypes, setSelectedApproxTypes] = useState<SocionicsType[]>([]);
+  const [isSoundEnabled, setIsSoundEnabled] = useState(false);
+  const [showSmartphoneInput, setShowSmartphoneInput] = useState(false);
+  const [smartphoneInput, setSmartphoneInput] = useState("");
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
   const [showDarlingEnding, setShowDarlingEnding] = useState(false);
 
@@ -151,21 +158,97 @@ export default function App() {
   // REC mode for ILI/LII/LSI
   const [isRecMode, setIsRecMode] = useState(false);
   const [hasSeenIliLiiLsiSplit, setHasSeenIliLiiLsiSplit] = useState(false);
+  const [hasSeenSleSplit, setHasSeenSleSplit] = useState(false);
+  const [hasSeenTeSeSplit, setHasSeenTeSeSplit] = useState(false);
+  const [showNextAfterInvasion, setShowNextAfterInvasion] = useState(false);
 
   // MBTI抽出
   
   const resetState = () => {
-    
+    setStep("title");
+    setCurrentQId("q1");
+    setIeScores({ Ti: 0, Te: 0, Ni: 0, Ne: 0, Si: 0, Se: 0, Fi: 0, Fe: 0 });
+    setPosSignatures(createEmptyPositionSignatures());
+    setJpScore({ j: 0, p: 0 });
+    setActionLogs([]);
+    setHistory([]);
     setIsRecMode(false);
     setHasSeenIliLiiLsiSplit(false);
-    
+                    setHasSeenSleSplit(false);
+    setHasSeenTeSeSplit(false);
+                    setShowNextAfterInvasion(false);
     setTopCandidates([]);
     setShowDarlingEnding(false);
+    setTrashItems([
+      { id: 1, icon: "📄", label: "古い資料", x: 20, y: 35 },
+      { id: 2, icon: "🥫", label: "空き缶", x: 75, y: 25 },
+      { id: 3, icon: "🍟", label: "食べカス", x: 45, y: 65 },
+      { id: 4, icon: "📝", label: "メモ用紙", x: 80, y: 70 },
+      { id: 5, icon: "🧃", label: "紙パック", x: 18, y: 70 },
+    ]);
+    setCleanedCount(0);
+    setPlantStage(0);
+    setChappyTension(3);
+    setChappyReaction(null);
+    setSelectedChappyOpt(null);
+  };
+
+  
+  const playClickSound = () => {
+    if (isSoundEnabled) {
+      try {
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.stop(audioCtx.currentTime + 0.1);
+      } catch (e) {}
+    }
+  };
+
+  const triggerCaterpillarInvasion = (emoji: string) => {
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.inset = '0';
+    container.style.pointerEvents = 'none';
+    container.style.zIndex = '9999';
+    container.style.overflow = 'hidden';
+    document.body.appendChild(container);
+    
+    const msgs = ["境界線確保。侵入継続。", "領土侵犯ヲ確認。占領プロセスヲ実行中..."];
+    
+    for(let i=0; i<30; i++) {
+      const cat = document.createElement('div');
+      cat.innerHTML = emoji + '<br/><div style="font-size: 10px; color: red; background: black; padding: 2px; white-space: nowrap;">' + msgs[i%2] + '</div>';
+      cat.style.position = 'absolute';
+      cat.style.left = Math.random() * 100 + 'vw';
+      cat.style.top = -20 + 'vh';
+      cat.style.transition = 'all ' + (4 + Math.random()*4) + 's ease-in';
+      cat.style.fontSize = (20 + Math.random()*40) + 'px';
+      container.appendChild(cat);
+      
+      setTimeout(() => {
+        cat.style.top = 120 + 'vh';
+        cat.style.transform = 'rotate(' + (Math.random()*360) + 'deg)';
+      }, 50);
+    }
+    
+    setTimeout(() => {
+      if (document.body.contains(container)) {
+        document.body.removeChild(container);
+      }
+      setShowNextAfterInvasion(true);
+    }, 8500);
   };
 
   const handleMbtiSubmit = () => {
-    const match = rawMbtiInput.match(
-      /(INTJ|INTP|INFJ|INFP|ISTJ|ISTP|ISFJ|ISFP|ENTJ|ENTP|ENFJ|ENFP|ESTJ|ESTP|ESFJ|ESFP)/i,
+    const match = rawMbtiInput.match(/(INTJ|INTP|INFJ|INFP|ISTJ|ISTP|ISFJ|ISFP|ENTJ|ENTP|ENFJ|ENFP|ESTJ|ESTP|ESFJ|ESFP|ILE|SEI|ESE|LII|EIE|LSI|SLE|IEI|SEE|ILI|LIE|ESI|LSE|EII|IEE|SLI)/i,
     );
     if (match) {
       setDetectedMbti(match[1].toUpperCase());
@@ -296,15 +379,19 @@ export default function App() {
       setHasSeenIliLiiLsiSplit(true);
       setIsRecMode(true);
       setCurrentQId("q_ili_lii_lsi_split_1");
+    } else if (["SLE", "SEE"].includes(topType) && !hasSeenSleSplit) {
+      setHasSeenSleSplit(true);
+      setCurrentQId("q_sle_vs_see_1");
+    } else if (["SLE", "LIE", "LSE"].includes(topType) && !hasSeenTeSeSplit) {
+      setHasSeenTeSeSplit(true);
+      setCurrentQId("q_te_se_split_1");
     } else {
-      if (currentQId !== "q_darling_intercom") { setCurrentQId("q_darling_intercom"); } else { triggerConfetti(); setStep("result"); }
-      
-      
-      
+      if (currentQId !== "q_darling_intercom") { setCurrentQId("q_darling_liar"); } else { triggerConfetti(); setStep("result"); }                      
     }
   };
 
   const handleSelectOption = (option: Option) => {
+    playClickSound();
     const qText = QUESTIONS[currentQId]?.text || "特殊アクション";
     const newLogs = [
       ...actionLogs,
@@ -474,9 +561,18 @@ export default function App() {
     if (!resultCardRef.current || isExporting) return;
     setIsExporting(true);
     try {
+      // Force PC size
+      const targetWidth = 768; 
+      const style = {
+        width: targetWidth + 'px',
+        transform: 'none',
+      };
       const dataUrl = await toPng(resultCardRef.current, {
         cacheBust: true,
         backgroundColor: "#f8fafc",
+        style,
+        width: targetWidth,
+        pixelRatio: 2,
       });
       const link = document.createElement("a");
       link.download = `socio_modelA_result_${new Date().getTime()}.png`;
@@ -568,6 +664,16 @@ export default function App() {
 
   const currentQ = QUESTIONS[currentQId];
 
+  const shuffledOptions = useMemo(() => {
+    if (!currentQ || !currentQ.options) return [];
+    const opts = [...currentQ.options];
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    return opts;
+  }, [currentQId, currentQ]);
+
   // 8ポジションそれぞれにおける8情報要素（IE）の順位ランキング生成
   const getPositionRankings = (pos: ModelPosition) => {
     const rawPosData = posSignatures[pos] || {};
@@ -587,6 +693,14 @@ export default function App() {
         ? 'bg-black text-red-500 selection:bg-red-900 selection:text-red-100'
         : 'bg-watercolor-dream text-slate-800 selection:bg-pink-500 selection:text-slate-900'
     }`}>
+      {/* サウンドコントロール */}
+      <button 
+        onClick={() => setIsSoundEnabled(!isSoundEnabled)} 
+        className="fixed top-4 right-4 z-50 p-2 rounded-full bg-white/50 backdrop-blur-sm border border-slate-300 text-slate-600 hover:bg-white/80 transition-all cursor-pointer shadow-sm"
+        title={isSoundEnabled ? "サウンドON" : "サウンドOFF"}
+      >
+        {isSoundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5 opacity-50" />}
+      </button>
       {isGlitchMode && (
         <div className="fixed inset-0 pointer-events-none z-[100] border-[8px] border-red-600/30 flex p-6">
           <div className="absolute top-6 left-6 text-red-500 font-mono font-bold animate-pulse text-xl flex items-center gap-2">
@@ -700,7 +814,7 @@ export default function App() {
               </div>
 
               {/* 明朝体タイトル */}
-              <h1 className="font-serif text-4xl md:text-6xl font-extrabold mb-6 leading-tight tracking-tight text-slate-900 drop-shadow-[0_4px_16px_rgba(0,0,0,0.6)]">
+              <h1 className="font-serif text-4xl md:text-6xl font-extrabold mb-6 leading-tight tracking-tight text-slate-900 drop-shadow-[0_4px_12px_rgba(14,165,233,0.2)] text-slate-800">
                 ソシオJ/P
                 <br />
                 <span className="text-watercolor-gradient">ねじれ診断</span>
@@ -723,10 +837,91 @@ export default function App() {
                 <span>診断を始める</span>
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
+              
+              <div className="mt-12 pt-8 border-t border-slate-300/50 flex justify-center">
+                <button
+                  onClick={() => { playClickSound(); setStep("approximate_select"); }}
+                  className="px-6 py-3 bg-white/70 hover:bg-sky-100 border border-slate-300 hover:border-sky-400 text-slate-700 font-bold rounded-full shadow-sm transition-all cursor-pointer"
+                >
+                  🔮 16タイプから直接選ぶ (近似診断)
+                </button>
+              </div>
             </motion.div>
           )}
 
           {/* STEP 2: 自認MBTI入力画面 */}
+                    {/* STEP: 16タイプ選択 (近似診断) */}
+          {step === "approximate_select" && (
+            <motion.div
+              key="approximate_select"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="w-full max-w-2xl glass-card p-6 md:p-10 rounded-3xl border border-white/50 shadow-2xl relative"
+            >
+              <button
+                onClick={() => { playClickSound(); setStep("title"); }}
+                className="absolute top-4 left-4 p-2 bg-white/50 hover:bg-white/80 rounded-full text-slate-600 transition-colors"
+              >
+                ← 戻る
+              </button>
+              
+              <h2 className="font-serif text-xl md:text-2xl font-bold text-slate-900 mb-2 mt-4 text-center">
+                🔮 近似タイプ診断
+              </h2>
+              <p className="text-sm text-slate-600 mb-8 text-center">
+                最大4つまでタイプを選択して比較できます。
+              </p>
+              
+              <div className="flex flex-wrap gap-2 justify-center max-w-lg mx-auto mb-8">
+                {Object.keys(MODEL_A_DEFINITIONS).map(type => {
+                   const isSelected = selectedApproxTypes.includes(type as SocionicsType);
+                   return (
+                     <button
+                        key={type}
+                        onClick={() => {
+                           playClickSound();
+                           if (isSelected) {
+                             setSelectedApproxTypes(selectedApproxTypes.filter(t => t !== type));
+                           } else if (selectedApproxTypes.length < 4) {
+                             setSelectedApproxTypes([...selectedApproxTypes, type as SocionicsType]);
+                           }
+                        }}
+                        className={`px-4 py-2 font-bold rounded-xl text-sm transition-all shadow-sm cursor-pointer border ${
+                          isSelected 
+                            ? "bg-pink-500 text-white border-pink-600 shadow-pink-500/30 scale-105" 
+                            : "bg-white/70 hover:bg-sky-100 border-slate-300 hover:border-sky-400 text-slate-700"
+                        }`}
+                     >
+                        {type}
+                     </button>
+                   );
+                })}
+              </div>
+              
+              <div className="text-center h-16">
+                <AnimatePresence>
+                  {selectedApproxTypes.length > 0 && (
+                    <motion.button
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      onClick={() => {
+                         playClickSound();
+                         setTopCandidates(selectedApproxTypes);
+                         setStep("approximate");
+                         setApproximateQIndex(0);
+                      }}
+                      className="px-8 py-3 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-full shadow-lg shadow-sky-500/30 transition-all cursor-pointer"
+                    >
+                      選択したタイプで決戦開始！
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          )}
+
           {step === "mbti_input" && (
             <motion.div
               key="mbti_input"
@@ -742,7 +937,7 @@ export default function App() {
                 </h2>
               </div>
               <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-                自認を入力すると、診断結果で Model A
+                MBTI（16タイプ）またはソシオニクスタイプを入力してね。診断結果で Model A
                 ポジション配置との「J/Pねじれ」や構造的ギャップを解説します♡
               </p>
 
@@ -781,7 +976,7 @@ export default function App() {
                       <span className="font-bold underline text-slate-900">
                         {rawMbtiInput
                           .match(
-                            /(INTJ|INTP|INFJ|INFP|ISTJ|ISTP|ISFJ|ISFP|ENTJ|ENTP|ENFJ|ENFP|ESTJ|ESTP|ESFJ|ESFP)/i,
+                            /(INTJ|INTP|INFJ|INFP|ISTJ|ISTP|ISFJ|ISFP|ENTJ|ENTP|ENFJ|ENFP|ESTJ|ESTP|ESFJ|ESFP|ILE|SEI|ESE|LII|EIE|LSI|SLE|IEI|SEE|ILI|LIE|ESI|LSE|EII|IEE|SLI)/i,
                           )?.[1]
                           ?.toUpperCase() || "特定中（未検出）"}
                       </span>
@@ -886,7 +1081,7 @@ export default function App() {
                       {currentQ.text}
                     </p>
                     <div className="space-y-3 mb-8">
-                      {currentQ.options.map((opt, idx) => {
+                      {shuffledOptions.map((opt, idx) => {
                         const isSelected =
                           selectedMultipleOptions.includes(opt);
                         return (
@@ -1163,7 +1358,7 @@ export default function App() {
 
                     {/* 8つの選択肢 */}
                     <div className="space-y-2.5 mb-5">
-                      {currentQ.options.map((opt, idx) => {
+                      {shuffledOptions.map((opt, idx) => {
                         const isSelected = selectedChappyOpt === opt;
                         return (
                           <button
@@ -1223,6 +1418,198 @@ export default function App() {
                       </p>
                     )}
                   </div>
+                ) : currentQ?.type === "game_intercom" ? (
+                  /* 🥺 突発襲来：ダーリンちゃんインターフォンギミック */
+                  <div className="text-center relative">
+                    <div className="inline-block px-3.5 py-1 rounded-full bg-red-900/50 border border-red-500/50 text-red-400 text-xs font-bold mb-6">
+                      {currentQ.categoryTag}
+                    </div>
+                    
+                    <div className="relative w-56 h-56 mx-auto mb-8 rounded-full border-[10px] border-[#1a1a1a] overflow-hidden shadow-[0_0_40px_rgba(220,38,38,0.4)] cursor-pointer group"
+                         onClick={() => {
+                            // ピンポーン音
+                            if (isSoundEnabled) {
+                              try {
+                                const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                                const osc = audioCtx.createOscillator();
+                                const gain = audioCtx.createGain();
+                                osc.type = 'sine';
+                                osc.connect(gain);
+                                gain.connect(audioCtx.destination);
+                                
+                                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                                gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                                osc.start();
+                                
+                                setTimeout(() => {
+                                  if(osc.frequency) osc.frequency.setValueAtTime(659.25, audioCtx.currentTime);
+                                }, 300);
+                                
+                                setTimeout(() => {
+                                  if(gain.gain) gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                                  osc.stop(audioCtx.currentTime + 0.1);
+                                }, 800);
+                              } catch (e) {
+                                console.log("WebAudio blocked");
+                              }
+                            }
+                         }}>
+                         
+                      {/* 魚眼レンズ（ドアスコープ）エフェクト強化版 */}
+                      <div className="absolute inset-0 bg-black/60 z-20 pointer-events-none rounded-full" style={{ boxShadow: 'inset 0 0 80px rgba(0,0,0,1)' }}></div>
+                      <div className="absolute inset-0 z-30 pointer-events-none rounded-full opacity-50" style={{ background: 'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 25%)' }}></div>
+                      <div className="absolute inset-0 z-30 pointer-events-none rounded-full opacity-20 mix-blend-overlay" style={{ backgroundImage: 'repeating-radial-gradient(circle at center, transparent 0, transparent 2px, rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.1) 4px)' }}></div>
+                      
+                      {/* ダーリンちゃん */}
+                      <div className="absolute inset-0 flex items-center justify-center transform scale-[1.3] group-hover:scale-[1.8] transition-transform duration-1000 z-10">
+                        <motion.span 
+                          animate={{ rotate: [-2, 2, -2] }}
+                          transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                          className="text-[140px] drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]"
+                        >🥺</motion.span>
+                      </div>
+                    </div>
+                    
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                      className="bg-red-950/80 p-5 rounded-2xl border border-red-500/30 mb-8 inline-block max-w-sm"
+                    >
+                      <p className="font-serif text-lg md:text-xl font-bold leading-relaxed text-red-100 text-left">
+                        <span className="text-red-500 text-sm mb-2 block">（ピンポーン）</span>
+                        ダーリンちゃん<br/>
+                        「ねぇ、ダーリン♡<br/>
+                        ……ねぇ、一緒に住まない？」
+                      </p>
+                    </motion.div>
+                    
+                    <div className="space-y-4 max-w-sm mx-auto">
+                       <button
+                          onClick={() => setShowDarlingEnding(true)}
+                          className="w-full py-4 rounded-xl font-bold transition-all bg-red-600 hover:bg-red-500 text-white shadow-[0_0_20px_rgba(220,38,38,0.6)] cursor-pointer"
+                        >
+                          {currentQ.options[0].text}
+                        </button>
+                        
+                        <div className="relative mt-6 pt-6 border-t border-red-900/50">
+                          {showSmartphoneInput ? (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              className="bg-slate-900 p-4 rounded-2xl border border-slate-700 shadow-2xl relative overflow-hidden"
+                            >
+                              <div className="absolute top-0 left-0 w-full h-6 bg-black flex justify-center items-center">
+                                <div className="w-16 h-1.5 bg-slate-800 rounded-full"></div>
+                              </div>
+                              <p className="text-slate-400 text-xs mt-4 mb-2">緊急通報ダイヤル</p>
+                              <div className="flex gap-2">
+                                <input
+                                  type="tel"
+                                  value={smartphoneInput}
+                                  onChange={(e) => setSmartphoneInput(e.target.value)}
+                                  placeholder="番号を入力..."
+                                  className="flex-1 bg-slate-800 border border-slate-600 rounded-xl px-4 py-3 text-white font-mono text-xl focus:outline-none focus:border-red-500"
+                                />
+                                <button
+                                  onClick={() => {
+                                    if (smartphoneInput === "110") {
+                                      if (isSoundEnabled) {
+                                        try {
+                                          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                                          const osc = audioCtx.createOscillator();
+                                          osc.type = 'sine';
+                                          osc.connect(audioCtx.destination);
+                                          osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                                          osc.start();
+                                          setTimeout(() => osc.stop(), 500);
+                                        } catch(e){}
+                                      }
+                                      alert("【SYSTEM ERROR 404】\n通報は遮断されました。\n\n侵入者はあなたの【防衛本能】そのものです。\n即座に境界線を確保してください。");
+                                      handleSelectOption(currentQ.options[1]);
+                                    } else if (smartphoneInput === "119") {
+                                      if (isSoundEnabled) {
+                                        try {
+                                          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                                          const osc = audioCtx.createOscillator();
+                                          osc.type = 'sine';
+                                          osc.connect(audioCtx.destination);
+                                          osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                                          osc.start();
+                                          setTimeout(() => osc.stop(), 500);
+                                        } catch(e){}
+                                      }
+                                      alert("【SYSTEM ERROR 404】\n消防車ではなく……芋虫消防車が到着しました。🚒🐛");
+                                      triggerCaterpillarInvasion("🚒🐛");
+                                      setShowDarlingEnding(true);
+                                    } else {
+                                      if (isSoundEnabled) {
+                                        try {
+                                          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                                          const osc = audioCtx.createOscillator();
+                                          osc.type = 'sine';
+                                          osc.connect(audioCtx.destination);
+                                          osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                                          osc.start();
+                                          setTimeout(() => osc.stop(), 500);
+                                        } catch(e){}
+                                      }
+                                      alert("【SYSTEM ERROR 404】\n通報は遮断されました。\nLSI芋虫につながりました……🐛");
+                                      triggerCaterpillarInvasion("🐛");
+                                      setShowDarlingEnding(true);
+                                    }
+                                  }}
+                                  className="px-6 bg-green-600 hover:bg-green-500 text-white rounded-xl font-bold cursor-pointer transition-colors"
+                                >
+                                  発信
+                                </button>
+                              </div>
+                            </motion.div>
+                          ) : (
+                            <button
+                              onClick={() => setShowSmartphoneInput(true)}
+                              className="w-full py-4 rounded-xl font-bold transition-all bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-300 flex items-center justify-center gap-2 cursor-pointer group"
+                            >
+                              <Smartphone className="w-5 h-5 group-hover:text-red-400 transition-colors" />
+                              <span>スマホを取り出す</span>
+                            </button>
+                          )}
+                        </div>
+                    </div>
+                  </div>
+                ) : currentQ?.type === "text_input" ? (
+                  /* テキスト入力型質問 */
+                  <div>
+                    {currentQ.categoryTag && (
+                      <div className={`inline-block px-3.5 py-1 rounded-full text-xs font-bold mb-4 border ${
+                        isGlitchMode 
+                          ? 'bg-red-900/50 border-red-500/50 text-red-400' 
+                          : 'bg-sky-50 border-pink-300/50 text-pink-600'
+                      }`}>
+                        {currentQ.categoryTag}
+                      </div>
+                    )}
+                    <p className={`font-serif text-lg md:text-xl font-medium leading-relaxed mb-8 whitespace-pre-wrap ${
+                      isGlitchMode ? 'text-red-100' : 'text-slate-800'
+                    }`}>
+                      {currentQ.text.replace(/{NAME}/g, displayName)}
+                    </p>
+                    <div className="space-y-3.5 mb-6">
+                      <textarea
+                        className="w-full p-4 rounded-xl border border-red-500/50 bg-red-950/50 text-red-100 placeholder-red-500/30 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        rows={4}
+                        placeholder="（正直に書きなさい……）"
+                      ></textarea>
+                    </div>
+                    <div className="flex justify-end">
+                       <button
+                          onClick={() => handleSelectOption(currentQ.options[0])}
+                          className="px-6 py-3 rounded-xl font-bold transition-all bg-red-600 hover:bg-red-500 text-white cursor-pointer shadow-[0_0_15px_rgba(220,38,38,0.5)]"
+                        >
+                          {currentQ.options[0].text}
+                        </button>
+                    </div>
+                  </div>
                 ) : currentQ ? (
                   /* 標準の心理質問 */
                   <div>
@@ -1243,7 +1630,7 @@ export default function App() {
                     </p>
 
                     <div className="space-y-3.5">
-                      {currentQ.options.map((opt, idx) => (
+                      {shuffledOptions.map((opt, idx) => (
                         <button
                           key={idx}
                           onClick={() => handleSelectOption(opt)}
@@ -1284,35 +1671,41 @@ export default function App() {
               >
                 {/* ナビゲーターからのメッセージ */}
                 <div className="flex items-start gap-3.5 mb-6">
-                  <div className="w-11 h-11 rounded-full bg-pink-500 flex items-center justify-center shrink-0 shadow-lg text-lg">
+                  <div className="w-11 h-11 rounded-full bg-pink-900/20 border border-pink-500/40 flex items-center justify-center shrink-0 shadow-md text-lg">
                     🥺
                   </div>
-                  <div className="bg-slate-100/90 p-4 rounded-2xl rounded-tl-none border border-slate-300 flex-1">
-                    <p className="text-xs text-pink-600 font-bold mb-1">
-                      🥺 ダーリンちゃん
+                  <div className="bg-slate-900/80 p-4 rounded-2xl rounded-tl-none border border-pink-900/30 flex-1 shadow-lg backdrop-blur-sm">
+                    <p className="text-xs text-pink-400 font-bold mb-1.5 flex items-center gap-1">
+                      <span>🥺 ダーリンちゃん</span>
+                      <span className="text-[10px] font-normal text-slate-500">（Fe観測インターフェース）</span>
                     </p>
-                    <p className="text-slate-800 text-sm leading-relaxed">
-                      {displayName}さん、診断おつかれさま！
-                      <br />
-                      {detectedMbti ? (
-                        <>
-                          自認は『
-                          <span className="font-bold text-sky-600">
-                            {detectedMbti}
-                          </span>
-                          』だったね。
-                        </>
-                      ) : (
-                        <>（自認タイプは未設定）</>
-                      )}
-                      <br />
-                      Model A
-                      8つのポジション配置構造を解析した結果、最も適合したのは『
-                      <span className="font-bold text-pink-600 underline">
-                        {topMeta.name}
-                      </span>
-                      』だったよ！
-                    </p>
+                    <div className="text-slate-200 text-sm leading-relaxed space-y-2">
+                      <p>
+                        あら、{displayName}♡ くだらない不条理な試練、よく最後まで耐え切ったわね♡ 
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {detectedMbti ? (
+                          <>
+                            あなたの自認は『
+                            <span className="font-semibold text-sky-400 underline decoration-sky-500/30">
+                              {detectedMbti}
+                            </span>
+                            』という演出……つまり、ただの仮面だったのかしら？♡
+                          </>
+                        ) : (
+                          <>（あら……自認すら隠して、本音を覆い隠すタイプなのね♡）</>
+                        )}
+                      </p>
+                      <p className="pt-1 border-t border-slate-800">
+                        Model Aの8ポジション配置構造を解剖して、あなたの仮面の奥の“本音”を剥ぎ取った結果……
+                        <br />
+                        最も適合したのは『
+                        <span className="font-bold text-pink-400 text-base underline decoration-pink-500/50">
+                          {topMeta.name}
+                        </span>
+                        』だったわ♡
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -1484,6 +1877,22 @@ export default function App() {
                 )}
               </div>{" "}
               {/* End of resultCardRef */}
+              {/* 煽りボタン (近似診断へ) */}
+              <div className="flex flex-col gap-4 mt-6 mb-6">
+                <button
+                  onClick={() => {
+                    setTopCandidates(calculatedMatches.slice(0, 4).map(m => m.type));
+                    setStep("approximate");
+                    setApproximateQIndex(0);
+                    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+                  }}
+                  className="w-full py-4 rounded-xl font-bold bg-pink-100 hover:bg-pink-200 text-pink-700 transition-colors shadow-md border border-pink-300 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span className="text-xl">🥺</span>
+                  <span>上位4つの近似タイプと比べる（精密決戦）</span>
+                </button>
+              </div>
+              
               {/* 行動ログ（コピー用） */}
               {actionLogs.length > 0 && (
                 <div className="mt-6 p-6 rounded-3xl border border-pink-400/50 shadow-xl bg-white/90">
@@ -1558,6 +1967,18 @@ export default function App() {
                     setHistory([]);
                     setIsRecMode(false);
                     setHasSeenIliLiiLsiSplit(false);
+                    setTrashItems([
+  { id: 1, icon: "📄", label: "古い資料", x: 20, y: 35 },
+  { id: 2, icon: "🥫", label: "空き缶", x: 75, y: 25 },
+  { id: 3, icon: "🍟", label: "食べカス", x: 45, y: 65 },
+  { id: 4, icon: "📝", label: "メモ用紙", x: 80, y: 70 },
+  { id: 5, icon: "🧃", label: "紙パック", x: 18, y: 70 },
+]);
+                    setCleanedCount(0);
+                    setPlantStage(0);
+                    setChappyTension(3);
+                    setChappyReaction(null);
+                    setSelectedChappyOpt(null);
                   }}
                   className="px-5 py-2.5 bg-sky-50 hover:bg-slate-100 text-slate-600 border border-slate-300 font-bold rounded-full text-xs flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer"
                 >
@@ -1627,36 +2048,37 @@ export default function App() {
                   ……逃がさないからね？
                 </p>
                 
-                <div className="flex flex-col gap-4">
-                  <button onClick={() => {
-                      const container = document.createElement('div');
-                      container.style.position = 'fixed';
-                      container.style.inset = '0';
-                      container.style.pointerEvents = 'none';
-                      container.style.zIndex = '9999';
-                      container.style.overflow = 'hidden';
-                      document.body.appendChild(container);
-                      
-                      const msgs = ["境界線確保。侵入継続。", "領土侵犯ヲ確認。占領プロセスヲ実行中..."];
-                      
-                      for(let i=0; i<30; i++) {
-                        const cat = document.createElement('div');
-                        cat.innerHTML = '🐛<br/><div style="font-size: 10px; color: red; background: black; padding: 2px; white-space: nowrap;">' + msgs[i%2] + '</div>';
-                        cat.style.position = 'absolute';
-                        cat.style.left = Math.random() * 100 + 'vw';
-                        cat.style.top = Math.random() * 100 + 'vh';
-                        cat.style.transform = `scale(${Math.random() * 1.5 + 0.5})`;
-                        cat.style.animation = `pulse ${Math.random() + 0.5}s infinite alternate`;
-                        container.appendChild(cat);
+                
+                {showNextAfterInvasion ? (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4 mt-8">
+                    <button onClick={() => {
+                      setShowNextAfterInvasion(false);
+                      setShowDarlingEnding(false);
+                      if (QUESTIONS["q_darling_intercom"] && QUESTIONS["q_darling_intercom"].options) {
+                        handleSelectOption(QUESTIONS["q_darling_intercom"].options[0]);
+                      } else {
+                        triggerConfetti();
+                        setStep("result");
                       }
-                      alert("ダーリンちゃん「ふふ♡ 選択を誤ったわね♡」");
-                  }} className="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl shadow-[0_0_15px_rgba(220,38,38,0.8)] transition-all cursor-pointer">
-                    はい、住みます……♡
-                  </button>
-                  <button onClick={() => setShowDarlingEnding(false)} className="w-full py-4 bg-transparent border border-red-900 hover:bg-red-950 text-red-500/50 font-bold rounded-xl transition-all cursor-pointer">
-                    110番に通報する
-                  </button>
-                </div>
+                    }} className="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.8)] transition-all cursor-pointer">
+                      次へ
+                    </button>
+                  </motion.div>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    <button onClick={() => {
+                        triggerCaterpillarInvasion("🐛");
+                    }} className="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl shadow-[0_0_15px_rgba(220,38,38,0.8)] transition-all cursor-pointer">
+                      はい、住みます……♡ (占領を許可する)
+                    </button>
+                    <button onClick={() => {
+                       alert("【SYSTEM ERROR 404】\n通報は遮断されました。\n\n侵入者はあなたの【防衛本能】そのものです。\n即座に境界線を確保してください。");
+                       triggerCaterpillarInvasion("🐛");
+                    }} className="w-full py-4 bg-transparent border border-red-900 hover:bg-red-950 text-red-500/50 font-bold rounded-xl transition-all cursor-pointer">
+                      110番に通報する
+                    </button>
+                  </div>
+                )}
               </motion.div>
             </motion.div>
           )}
