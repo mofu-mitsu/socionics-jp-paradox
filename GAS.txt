@@ -1,0 +1,41 @@
+function doPost(e) {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    const data = JSON.parse(e.postData.contents);
+    
+    // Header check
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(['Timestamp', 'DisplayName', 'MBTI', 'ResultType', 'J_Excuse', 'ActionLogs']);
+    }
+    
+    const row = [
+      new Date(),
+      data.displayName || "",
+      data.mbti || "",
+      data.result || "",
+      data.feedback || "",
+      JSON.stringify(data.logs || [])
+    ];
+    
+    sheet.appendRow(row);
+    
+    return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: error.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// 許可するためのCORS対応 (Options request)
+function doOptions(e) {
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Max-Age": "86400"
+  };
+  return ContentService.createTextOutput("")
+    .setMimeType(ContentService.MimeType.TEXT)
+    .setHeaders(headers);
+}

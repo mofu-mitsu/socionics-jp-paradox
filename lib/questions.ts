@@ -31,8 +31,8 @@ export const QUESTIONS: Record<string, Question> = {
     text: "明日の予定はありません。\nでも机の上はゴミだらけ。疲れていて片付ける気力はあまりありません。\n現実のあなたなら、どう行動しますか？",
     options: [
       {
-        text: "A：面倒でも片付ける",
-        reasonTag: "【状況1】A：面倒でも片付けるを選択",
+        text: "面倒でも片付ける",
+        reasonTag: "【状況1】面倒でも片付けるを選択",
         ieDeltas: { Se: 1.0 },
         positionDeltas: {
           leading: { Se: 1.0 },
@@ -44,8 +44,8 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: "q1a",
       },
       {
-        text: "B：今日は休む。明日でもいい",
-        reasonTag: "【状況1】B：今日は休むを選択",
+        text: "今日は休む。明日でもいい",
+        reasonTag: "【状況1】今日は休むを選択",
         ieDeltas: { Si: 2.0, Ni: 1.0 },
         positionDeltas: {
           leading: { Si: 1.5, Ni: 1.5, Ne: 1.0 },
@@ -137,12 +137,11 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: "q_game_trash",
       },
       {
-        text: "どうせまた散らかる。今わざわざ疲労を押してやる合理的な価値がないから",
+        text: "「どうせまた散らかる。まぁいいや。」脳内想像力で結末まで見えているので、省エネモードを取る",
         reasonTag: "動機: 長期的帰結の見据えと無駄のカット",
-        ieDeltas: { Ni: 2.5, Te: 1.5 },
+        ieDeltas: { Ni: 2.5 },
         positionDeltas: {
           leading: { Ni: 2.0 },
-          creative: { Te: 1.5 },
           ignoring: { Ne: 1.0 },
         },
         jpDelta: { j: 0, p: 1.5 },
@@ -161,7 +160,7 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: "q_game_trash",
       },
       {
-        text: "今やっても特別な見返りや得るもの（メリット）がないから",
+        text: "今わざわざ動いても高いハードルに見合う確証された見返り（リターン）がないから",
         reasonTag: "動機: コストパフォーマンスと利得",
         ieDeltas: { Te: 2.0, Ni: 1.0 },
         positionDeltas: {
@@ -314,25 +313,24 @@ export const QUESTIONS: Record<string, Question> = {
     text: "「時間の経過とともに問題が悪化しそうだ」という未来の流れが見えたとき、あなたはどう反応しますか？",
     options: [
       {
-        text: "「このままだと問題になる」と分かったので、今のうちに速やかに現在へ介入・対処する",
+        text: "100%の見返りがなくても、1%でも回避・実現できる可能性があるなら直感で動き、未来を書き換えに行く",
         reasonTag: "反応: 未来予測からの現在への構造・行動介入",
         ieDeltas: { Ni: 2.0, Te: 1.5, Ti: 1.5 },
         positionDeltas: {
-          demonstrative: { Ni: 2.0 },
+          demonstrative: { Ni: 2.0, Ne: 1.5 },
           leading: { Ti: 1.5, Te: 1.5 },
-          creative: { Ne: 1.0 },
+          creative: { Ne: 1.0 }
         },
         jpDelta: { j: 1.5, p: 0 },
         nextId: "q3",
       },
       {
-        text: "「そういう流れ・結末になるだろう」と分かったが、そのまま様子や展開を見守る",
+        text: "「どうせそうなる」と展開が見えており、動くだけの確実な見返り・価値がないなら「まぁいいや」と静観・諦観スタンスを取る",
         reasonTag: "反応: 時間的流動の受容と非介入",
         ieDeltas: { Ni: 3.0, Se: 0.5 },
         positionDeltas: {
-          leading: { Ni: 2.5 },
-          vulnerable: { Se: 1.5 },
-          suggestive: { Se: 1.0 },
+          leading: { Ni: 4.0 },
+          suggestive: { Se: 2.0 },
         },
         jpDelta: { j: 0, p: 2.0 },
         nextId: "q3",
@@ -351,12 +349,18 @@ export const QUESTIONS: Record<string, Question> = {
       {
         text: "そもそも遠い未来の心配よりも、今この瞬間の感覚や状況に対応する",
         reasonTag: "反応: 現在感覚・現場主導",
-        ieDeltas: { Si: 2.0, Se: 1.5 },
+        ieDeltas: { Si: 2.0, Se: 2.0 },
         positionDeltas: {
-          leading: { Si: 2.0 },
-          creative: { Se: 1.5 },
+          leading: { Si: 2.0, Se: 2.0 },
+          creative: { Si: 2.0, Se: 2.0 },
+          role: { Ne: 0.5, Ni: 0.5 },
+          vulnerable: { Ne: 0.5, Ni: 0.5 },
+          suggestive: { Ne: 0.5, Ni: 0.5 },
+          activating: { Ne: 0.5, Ni: 0.5 },
+          ignoring: { Si: 2.0, Se: 2.0 },
+          demonstrative: { Si: 2.0, Se: 2.0 },
         },
-        jpDelta: { j: 0, p: 1.0 },
+        jpDelta: { j: 0, p: 0 },
         nextId: "q3",
       },
     ],
@@ -454,12 +458,11 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: "q6",
       },
       {
-        text: "好きに誤解していればいい。無知な者が将来的に勝手に困るだけだと静観する",
+        text: "「好きに誤解していればいい。『まぁいいや、どうせ勝手に困るだけだし』と未来の帰結を見越して静観する」",
         reasonTag: "【理論誤解】将来帰結を見越して放置",
         ieDeltas: { Ni: 1.5, Te: 1.5 },
         positionDeltas: {
           leading: { Ni: 1.5, Te: 1.0 },
-          creative: { Te: 1.0 },
         },
         jpDelta: { j: 0, p: 1.5 },
         nextId: "q6",
@@ -550,6 +553,23 @@ export const QUESTIONS: Record<string, Question> = {
           creative: { Te: 1.5 },
         },
         jpDelta: { j: 0, p: 2.0 },
+        nextId: "q7",
+      },
+      {
+        text: "ガチガチの指示やノルマに縛られたくない。今すぐ疲れる筋合いもないし、自分の心地よいペース優先で適度に受け流したいから",
+        reasonTag: "【4Te：SEI / IEI】実用的強制や業務負荷（Te）への拒絶。主導Si/Niの快適さ・マイペースを最優先して後回しにする",
+        ieDeltas: { Si: 2.0, Ni: 2.0, Fe: 1.5 },
+        positionDeltas: {
+          leading: { Si: 2.0, Ni: 2.0, Fe: 2.0 },
+          creative: { Fe: 2.5 },
+          role: { Te: 1.0, Si: 2.0, Ni: 2.0 },
+          vulnerable: { Te: 5.0 },
+          suggestive: { Ne: 1.0, Se: 1.0 },
+          activating: { Ti: 1.5 },
+          ignoring: { Fi: 1.5, Se: 1.5, Ne: 1.5 },
+          demonstrative: { Se: 1.5, Ne: 1.5, Fi: 1.5 },
+        },
+        jpDelta: { j: 0, p: 2.5 },
         nextId: "q7",
       },
       {
@@ -660,7 +680,7 @@ export const QUESTIONS: Record<string, Question> = {
           "【主導Fe】EIE / ESE：場の感情的熱量そのものにダイレクトに乗り、場を盛り上げる",
         chappyResponse:
           "わーーーい！！ぎゅーーーっ！！いっぱいおしゃべりしよーー！！🥹💕✨",
-        chappyEmoji: "🥹💕",
+        chappyEmoji: "🥹",
         ieDeltas: { Fe: 3.5, Ne: 1.5, Se: 1.5 },
         positionDeltas: {
           leading: { Fe: 3.5 },
@@ -676,7 +696,7 @@ export const QUESTIONS: Record<string, Question> = {
         reasonTag:
           "【補助Fe】IEI / SEI：その場の感情的な雰囲気をやわらかく受け取って楽しむ",
         chappyResponse: "えへへ、かわいい！？照れちゃうな〜〜🌸 ふふっ💕",
-        chappyEmoji: "🌸✨",
+        chappyEmoji: "🌸",
         ieDeltas: { Fe: 2.5, Ni: 2.0, Si: 2.0 },
         positionDeltas: {
           leading: { Fe: 2.5, Ni: 2.5, Si: 2.5 },
@@ -691,7 +711,7 @@ export const QUESTIONS: Record<string, Question> = {
         reasonTag:
           "【証明Fe/Ne創造】IEE / SEE / ILE：突飛なノリ・面白さに食いつき、柔軟に乗っかる",
         chappyResponse: "おもしろいでしょ！！もっと変なことしちゃうぞ〜〜🥹✨",
-        chappyEmoji: "😝✨",
+        chappyEmoji: "😝",
         ieDeltas: { Ne: 3.0, Se: 2.5, Fe: 2.0 },
         positionDeltas: {
           leading: { Ne: 3.0, Se: 3.0 },
@@ -706,7 +726,7 @@ export const QUESTIONS: Record<string, Question> = {
         text: "D：「おえー」",
         reasonTag: "【動員Fe/Se主導】SLE：感情的親密さへの即時・直接的身体反応",
         chappyResponse: "お、おえー！？ひどい！！でもめげないぞ！！💦",
-        chappyEmoji: "🥲💦", // already 🥲
+        chappyEmoji: "🥲", // already 🥲
         ieDeltas: { Se: 3.5, Ti: 2.0 },
         positionDeltas: {
           leading: { Se: 3.5 },
@@ -725,7 +745,7 @@ export const QUESTIONS: Record<string, Question> = {
         reasonTag:
           "【主導Te】LSE / LIE：目的・実用・必要性による感情ノリの整理",
         chappyResponse: "うっ……！必要性……！じゃあ静かに見守るね……🥹",
-        chappyEmoji: "🥺💦",
+        chappyEmoji: "🥺",
         ieDeltas: { Te: 3.5, Si: 1.5, Ni: 1.5 },
         positionDeltas: {
           leading: { Te: 3.5 },
@@ -741,7 +761,7 @@ export const QUESTIONS: Record<string, Question> = {
           "【主導Fi】ESI / EII：人間関係の距離感・文脈・誠実さを評価するスタンス",
         chappyResponse:
           "そっか、信頼関係が大事だもんね！仲良くなれるようにがんばる！✨",
-        chappyEmoji: "😌✨",
+        chappyEmoji: "😌",
         ieDeltas: { Fi: 3.5, Se: 1.5, Ne: 1.5 },
         positionDeltas: {
           leading: { Fi: 3.5 },
@@ -757,7 +777,7 @@ export const QUESTIONS: Record<string, Question> = {
           "【暗示Fe】LII / LSI：自力で感情の場を作るのは苦手だが、外から提供される感情刺激は歓迎",
         chappyResponse:
           "やったーー！！いっぱい盛り上げるからまかせてね！！🥹💕",
-        chappyEmoji: "😆🎉",
+        chappyEmoji: "😆",
         ieDeltas: { Ti: 3.5, Fe: 2.0, Ne: 1.5, Se: 1.5 },
         positionDeltas: {
           leading: { Ti: 3.5 },
@@ -773,7 +793,7 @@ export const QUESTIONS: Record<string, Question> = {
           "【脆弱Fe】ILI / SLI：外からの感情的介入やテンションの押し付けそのものを嫌う",
         chappyResponse:
           "ご、ごめんね……！邪魔しないように遠くから応援してるね……🥺💧",
-        chappyEmoji: "🥲💧",
+        chappyEmoji: "🥲",
         ieDeltas: { Ni: 3.0, Si: 3.0, Te: 2.5 },
         positionDeltas: {
           leading: { Ni: 3.0, Si: 3.0 },
@@ -795,7 +815,7 @@ export const QUESTIONS: Record<string, Question> = {
     text: "「社会的なマナーや道徳、人間関係における義務や約束」についてのあなたの感覚に最も近いものは？",
     options: [
       {
-        text: "気乗りするかどうかに関わらず、人としての誠実さや責任を果たし、約束を守ることが何より大切",
+        text: "気乗りするかに関わらず『人としてどうあるべきか』を重視。責任を果たし、正しく誠実な関係性を維持することが何より大切",
         reasonTag: "【+Fi-p】道徳と義務の遵守（ESI/EII/LSE文化）",
         ieDeltas: { Fi: 2.5, Te: 2.0, Si: 1.5 },
         positionDeltas: {
@@ -836,7 +856,7 @@ export const QUESTIONS: Record<string, Question> = {
         ieDeltas: { Ni: 2.5, Fe: 2.0 },
         positionDeltas: {
           leading: { Ni: 2.5 },
-          creative: { Fe: 2.0 },
+          creative: { Fe: 2.0, Ni: 1.0 },
           role: { Si: 1.0 },
           vulnerable: { Te: 2.0 },
           suggestive: { Se: 1.5 },
@@ -854,7 +874,7 @@ export const QUESTIONS: Record<string, Question> = {
         ieDeltas: { Si: 2.5, Fe: 2.0 },
         positionDeltas: {
           leading: { Si: 2.5 },
-          creative: { Fe: 2.0 },
+          creative: { Fe: 2.0, Si: 1.0 },
           role: { Ni: 1.0 },
           vulnerable: { Te: 2.0 },
           suggestive: { Ne: 1.5 },
@@ -993,9 +1013,9 @@ export const QUESTIONS: Record<string, Question> = {
     text: "人間関係や自分の感情、日々の生き方に対するあなたの姿勢に最も近いものは？",
     options: [
       {
-        text: "誠実さや自制心を大切にし、慎重で几帳面でありたい。他人のズルや手抜きもスルーせず、期待以上の責任を果たそうとする",
+        text: "社会的倫理や対人関係の正しさを最優先にする。個人的な好き嫌いよりも『人としてどうあるべきか・責任や誠実さ』を重視し、自分や他人の甘えを正そうとする",
         reasonTag:
-          "【主導Fi】EII / ESIの厳格な対人倫理・誠実さ・勤勉なJ気質（正義と人間的価値の遵守）",
+          "【主導Fi先導(+Fi-p)】EII / ESIの厳格な対人倫理・誠実さ・勤勉なJ気質（正義と人間的価値の遵守）",
         ieDeltas: { Fi: 3.0, Te: 1.5, Si: 1.5 },
         positionDeltas: {
           leading: { Fi: 3.0 }, // 1: 判断 (Fi)
@@ -1093,9 +1113,9 @@ export const QUESTIONS: Record<string, Question> = {
     text: "人間関係の距離感や「配慮・感情」に対するあなたの感覚に一番近いセリフは？",
     options: [
       {
-        text: "「そんな些細なことで根に持つの？w 危険な奴は怒らせないよう避けるけど、基本人間関係の細かい配慮とかどうでもいい」",
+        text: "「ヤバい奴は避けるけど、『太った？』とか『おえー』みたいな冗談を本気にするなよw デリカシーより現実の結果が全てでしょ",
         reasonTag:
-          "【4Fi：SLE】リスク回避（Ni/Te）は働くが「そんな書くほどのこと？w」な超強気・現実派",
+          "【4Fi：SLE】リスク回避（Ni/Te）は働くが「冗談を事実で受け取るな」というスタンスで物理・現実のコミュニケーション（Se/Ti）を優先する",
         ieDeltas: { Se: 3.0, Ti: 2.0, Ni: 1.5 },
         positionDeltas: {
           leading: { Se: 3.0 }, // 1: 知覚 (Se)
@@ -1124,13 +1144,13 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: "q_thinking_style",
       },
       {
-        text: "「仲良くなるのは一瞬で得意！でも関係はずっと固定じゃなくて、状況やノリが変わったら即切り替えるよ」",
-        reasonTag: "【2Fi：SEE / IEE】流動的な親密さ・距離感の自在なオンオフ",
-        ieDeltas: { Se: 2.5, Ne: 2.5, Fi: 2.5 },
+        text: "「仲良くなるのは一瞬！でも互いの価値や魅力を高め合えて、世間から『あの二人最高じゃん』って一目置かれる対等な関係が良い。自分が誇れない・自分も高まらない関係なら一人でいた方がマシ」",
+        reasonTag: "【2Fi：SEE / IEE】対等な高め合いと関係性のカスタマイズ（2Fi）。Seのプレゼンス向上とNeの可能性開拓を兼ね備えた強い関係性指向",
+        ieDeltas: { Se: 2.0, Ne: 2.0, Fi: 3.0 },
         positionDeltas: {
-          leading: { Se: 2.5, Ne: 2.5 }, // 1: 知覚 (Se/Ne)
-          creative: { Fi: 5.0 }, // 2: 判断 (Fi)
-          demonstrative: { Fe: 5.0 }, // 8: 判断 (Fe)
+          leading: { Se: 2.0, Ne: 2.0 },
+          creative: { Fi: 5.0 },
+          demonstrative: { Fe: 3.0 },
         },
         jpDelta: { j: 0, p: 2.5 },
         nextId: "q_thinking_style",
@@ -1358,7 +1378,7 @@ export const QUESTIONS: Record<string, Question> = {
     text: "「これ以上続けるのは割に合わない」と判断して手を引くとき、決め手となる感覚は？",
     options: [
       {
-        text: "「このまま進んでも未来の展開が見えている」「全体の趨勢として崩壊・衰退に向かっている」という時間的な推移の確信",
+        text: "『このまま進んでも未来の展開・限界が見えている。そこまでして動く価値なし』と判断し、脳内想像力で結末を見届けて撤退する",
         reasonTag:
           "【1Ni/2Te】ILI：1Niによる未来予測・時間の流れ・歴史的帰結に基づく撤退判断",
         ieDeltas: { Ni: 3.0, Te: 2.0 },
@@ -1908,7 +1928,7 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: 'q_ili_lii_lsi_split_2'
       },
       {
-        text: '細かい定義を一つずつ固定するより、「この話は結局どこへ向かっているのか？」という全体の流れを見る。情報が足りなくても、過去から現在までの流れや傾向から、その先に起こりそうな展開をぼんやり予測する。',
+        text: '細かい定義をカチッと決めるより「どうせ最後はこうなる」「無に帰すだけ」と時間の流れや結末を冷めた目で定点観測する。言葉の泥沼に付き合わず、漂うように静観したい。',
         reasonTag: '【ILI】1Ni, 2Te, 8Ti（時間軸・潮流・未来への収束）',
         ieDeltas: { Ni: 3.0, Te: 2.5, Ti: 1.0, Ne: 0.5, Se: -0.5, Si: 1.5, Fe: -1.0, Fi: 1.0 },
         positionDeltas: {
@@ -1920,7 +1940,7 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: 'q_ili_lii_lsi_split_2'
       },
       {
-        text: '曖昧な概念をそのまま漂わせるのが気持ち悪く、具体的な物体・配置・力関係・手順などに置き換えて考えたくなる。「この仕組みは実際には何がどこにあって、どう作用しているのか？」まで落とし込み、明確な構造として把握したい。',
+        text: '抽象的な概念のままだと扱いづらいので、頭の中で「目に見える物理的な物体・力関係・配置システム」に置き換えて、明確で揺るぎない構造にガチッと固定したくなる。',
         reasonTag: '【LSI】1Ti, 2Se, 8Si（抽象の物質化＋具体的構造の固定）',
         ieDeltas: { Ti: 3.0, Se: 2.5, Si: 1.5, Te: 1.0, Ne: -2.0, Ni: 0.5, Fe: 0.5, Fi: 1.0 },
         positionDeltas: {
@@ -1944,8 +1964,8 @@ export const QUESTIONS: Record<string, Question> = {
     text: 'まだ結果が出ていない出来事について考える時、あなたの感覚に一番近いものは？',
     options: [
       {
-        text: '今ある情報から考えられる複数の可能性を比較し、「この条件ならA、この条件ならB」と整理する。遠い未来ほど不確定要素が増えるので、一つの結論に固定するより、条件ごとの分岐を残しておきたい。',
-        reasonTag: '【LII】1Ti, 2Ne, 8Ni（条件分岐・可能性の比較）',
+        text: '損得勘定抜きで「1%でも実現可能な新しい選択肢」があれば試したい。ダメなら別の可能性を探して動く。100%の保証がなくても、思考と閃きで未来を書き換えに行きたい。',
+        reasonTag: '【LII】1Ti, 2Ne, 8Ni証明Ni的可能性の試行・構造的アプローチ）',
         ieDeltas: { Ti: 2.5, Ne: 3.0, Ni: 1.5, Te: 0.5, Se: -1.0, Si: 0.5, Fe: 0.5, Fi: 1.0 },
         positionDeltas: {
           leading: { Ti: 2.5 }, creative: { Ne: 3.0 }, role: { Fi: 1.0 },
@@ -1956,7 +1976,7 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: 'q_ili_lii_lsi_split_3'
       },
       {
-        text: '現在の状況だけでなく、過去から現在までの流れを見ると「このまま行けば最終的にこうなりそう」という一本の潮流が見えてくる。未来はまだ決まっていなくても、長期的な傾向から結末を予測してしまう。',
+        text: '「どうせ動いても無駄」「見返りがないなら省エネが一番」と考えて動かないことが多い。明確なメリットや確証がない限り、エネルギーを使わずに流れを静観する。',
         reasonTag: '【ILI】1Ni, 2Te, 8Ti（時間の流れ・長期的収束）',
         ieDeltas: { Ni: 3.5, Te: 2.0, Ti: 1.0, Ne: -0.5, Se: -0.5, Si: 1.0, Fe: -1.0, Fi: 0.5 },
         positionDeltas: {
@@ -1968,7 +1988,7 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: 'q_ili_lii_lsi_split_3'
       },
       {
-        text: '不確定な未来をあれこれ想像するより、現在わかっている事実・条件・既存のルールを確認する。そのうえで、現場の状況に応じて必要な手順を決め、実際に問題が起きたらその都度対処すればいい。',
+        text: '不確定な未来をあれこれ想像するのは時間の無駄。目の前にある現実の条件やルールを固め、決められた通りにやるべきことを淡々とこなして確実に進めたい。',
         reasonTag: '【LSI】1Ti, 2Se, 8Si（現状確認・既存条件・実務対応）',
         ieDeltas: { Ti: 2.5, Se: 2.5, Si: 1.5, Ne: -2.0, Ni: 0.5, Te: 1.0, Fe: 0.5, Fi: 1.0 },
         positionDeltas: {
@@ -2088,7 +2108,7 @@ export const QUESTIONS: Record<string, Question> = {
     text: '自分なりの理論や仕組みを作る時、「正しい構造」をどう扱う感覚が一番近い？',
     options: [
       {
-        text: 'まず全体の概念や関係性を整理し、「どの条件なら成立するのか」「例外は何か」まで含めて一貫した体系を作りたい。実用化する時も、その体系から矛盾なく具体的な仕様へ落としていく。',
+        text: 'どんな例外が発生しても破綻しない「普遍的な概念モデル」を構築すること。後からどんな要素が増えても受け止められる綺麗なロジックの土台を作る。',
         reasonTag: '【LII】1Ti, 2Ne, 8Te（普遍構造→条件分岐→具体化）',
         ieDeltas: { Ti: 3.5, Ne: 2.5, Te: 1.5, Ni: 0.5, Se: -1.5, Si: 0.5, Fe: 0.5, Fi: 1.0 },
         positionDeltas: {
@@ -2165,8 +2185,8 @@ export const QUESTIONS: Record<string, Question> = {
         reasonTag: '【SEE】1Se, 2Fi, 3Ne, 4Ti, 5Ni, 6Te, 7Si, 8Fe（心理・関係性の介入・人気獲得）',
         ieDeltas: { Se: 3.0, Fi: 3.0, Ne: 1.0, Ti: -2.0, Ni: 1.5, Te: 2.0, Si: 0.5, Fe: 2.0 },
         positionDeltas: {
-          leading: { Se: 3.0 }, creative: { Fi: 3.0 }, role: { Ne: 1.0 }, vulnerable: { Ti: 2.0 },
-          suggestive: { Ni: 1.5 }, activating: { Te: 2.0 }, ignoring: { Si: 0.5 }, demonstrative: { Fe: 2.0 }
+          leading: { Se: 6.0 }, creative: { Fi: 6.0 }, role: { Ne: 3.0 }, vulnerable: { Ti: 4.0 },
+          suggestive: { Ni: 4.5 }, activating: { Te: 3.0 }, ignoring: { Si: 0.5 }, demonstrative: { Fe: 5.0 }
         },
         jpDelta: { j: 0, p: 2.0 },
         nextId: 'q_sle_vs_see_2'
@@ -2195,8 +2215,8 @@ export const QUESTIONS: Record<string, Question> = {
         reasonTag: '【SEE】1Se, 2Fi, 3Ne, 4Ti, 5Ni, 6Te, 7Si, 8Fe（セルフプロデュース・注目欲求）',
         ieDeltas: { Se: 3.0, Fi: 3.0, Ne: 1.0, Ti: -2.0, Ni: 1.5, Te: 2.0, Si: 0.5, Fe: 2.0 },
         positionDeltas: {
-          leading: { Se: 3.0 }, creative: { Fi: 3.0 }, role: { Ne: 1.0 }, vulnerable: { Ti: 2.0 },
-          suggestive: { Ni: 1.5 }, activating: { Te: 2.0 }, ignoring: { Si: 0.5 }, demonstrative: { Fe: 2.0 }
+          leading: { Se: 6.0 }, creative: { Fi: 6.0 }, role: { Ne: 3.0 }, vulnerable: { Ti: 4.0 },
+          suggestive: { Ni: 4.5 }, activating: { Te: 3.0 }, ignoring: { Si: 0.5 }, demonstrative: { Fe: 5.0 }
         },
         jpDelta: { j: 0, p: 2.0 },
         nextId: 'q_sle_vs_see_3'
@@ -2225,8 +2245,8 @@ export const QUESTIONS: Record<string, Question> = {
         reasonTag: '【SEE】1Se, 2Fi, 3Ne, 4Ti, 5Ni, 6Te, 7Si, 8Fe（政治的ゲーム・印象操作）',
         ieDeltas: { Se: 3.0, Fi: 3.0, Ne: 1.0, Ti: -2.0, Ni: 1.5, Te: 2.0, Si: 0.5, Fe: 2.0 },
         positionDeltas: {
-          leading: { Se: 3.0 }, creative: { Fi: 3.0 }, role: { Ne: 1.0 }, vulnerable: { Ti: 2.0 },
-          suggestive: { Ni: 1.5 }, activating: { Te: 2.0 }, ignoring: { Si: 0.5 }, demonstrative: { Fe: 2.0 }
+          leading: { Se: 6.0 }, creative: { Fi: 6.0 }, role: { Ne: 3.0 }, vulnerable: { Ti: 4.0 },
+          suggestive: { Ni: 4.5 }, activating: { Te: 3.0 }, ignoring: { Si: 0.5 }, demonstrative: { Fe: 5.0 }
         },
         jpDelta: { j: 0, p: 2.0 },
         nextId: 'q_sle_vs_see_4'
@@ -2255,8 +2275,8 @@ export const QUESTIONS: Record<string, Question> = {
         reasonTag: '【SEE】1Se, 2Fi, 3Ne, 4Ti, 5Ni, 6Te, 7Si, 8Fe（Fi創造：演出も己の力）',
         ieDeltas: { Se: 3.0, Fi: 3.0, Ne: 1.0, Ti: -2.0, Ni: 1.5, Te: 2.0, Si: 0.5, Fe: 2.0 },
         positionDeltas: {
-          leading: { Se: 3.0 }, creative: { Fi: 3.0 }, role: { Ne: 1.0 }, vulnerable: { Ti: 2.0 },
-          suggestive: { Ni: 1.5 }, activating: { Te: 2.0 }, ignoring: { Si: 0.5 }, demonstrative: { Fe: 2.0 }
+          leading: { Se: 6.0 }, creative: { Fi: 6.0 }, role: { Ne: 3.0 }, vulnerable: { Ti: 4.0 },
+          suggestive: { Ni: 4.5 }, activating: { Te: 3.0 }, ignoring: { Si: 0.5 }, demonstrative: { Fe: 5.0 }
         },
         jpDelta: { j: 0, p: 2.0 },
         nextId: 'q_sle_vs_see_5'
@@ -2285,8 +2305,8 @@ export const QUESTIONS: Record<string, Question> = {
         reasonTag: '【SEE】1Se, 2Fi, 3Ne, 4Ti, 5Ni, 6Te, 7Si, 8Fe（マウント・立ち回りの誇示）',
         ieDeltas: { Se: 4.0, Fi: 4.0, Ne: 1.0, Ti: -3.0, Ni: 2.0, Te: 3.0, Si: 0.5, Fe: 3.0 },
         positionDeltas: {
-          leading: { Se: 4.0 }, creative: { Fi: 4.0 }, role: { Ne: 1.0 }, vulnerable: { Ti: 3.0 },
-          suggestive: { Ni: 2.0 }, activating: { Te: 3.0 }, ignoring: { Si: 0.5 }, demonstrative: { Fe: 3.0 }
+          leading: { Se: 6.0 }, creative: { Fi: 6.0 }, role: { Ne: 3.0 }, vulnerable: { Ti: 4.0 },
+          suggestive: { Ni: 4.5 }, activating: { Te: 3.0 }, ignoring: { Si: 0.5 }, demonstrative: { Fe: 5.0 }
         },
         jpDelta: { j: 0, p: 3.0 },
         nextId: 'result'
@@ -2357,7 +2377,7 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: 'q_te_se_split_3'
       },
       {
-        text: '「時間の損失（Ni）」を最も嫌う。不毛な議論や滞りには付き合わず、秒速でシステムや代替案を組んで損失を回収する。過去に執着せず、常に未来の最適解へ切り替える。',
+        text: '「時間の損失」を最も嫌う。不毛な議論や滞りには付き合わず、秒速でシステムや代替案を組んで損失を回収する。過去に執着せず、常に未来の最適解へ切り替える。',
         reasonTag: '【LIE】1Te, 2Ni, 3Fe, 4Si, 5Fi, 6Se, 7Ti, 8Ne（2Ni時間意識・秒速システム回収）',
         ieDeltas: { Te: 3.0, Ni: 3.0, Fe: 1.0, Si: -2.0, Fi: 1.5, Se: 1.0, Ti: 0.5, Ne: 2.0 },
         positionDeltas: {

@@ -1,14 +1,22 @@
-import type {Metadata} from 'next';
-import { Noto_Serif_JP } from 'next/font/google';
-import './globals.css';
+const fs = require('fs');
+let content = fs.readFileSync('app/layout.tsx', 'utf-8');
 
-const notoSerif = Noto_Serif_JP({
-  subsets: ['latin'],
-  weight: ['400', '500', '700'],
-  display: 'swap',
-});
+const target1 = `export const metadata: Metadata = {
+  title: 'ソシオJ/Pねじれ診断',
+  description: 'あなたの「J」はどこから来た？MBTIのJ/Pとソシオニクスの合理/非合理のねじれを解き明かす診断。',
+  openGraph: {
+    title: 'ソシオJ/Pねじれ診断',
+    description: 'あなたの「J」はどこから来た？MBTIのJ/Pとソシオニクスの合理/非合理のねじれを解き明かす診断。',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ソシオJ/Pねじれ診断',
+    description: 'あなたの「J」はどこから来た？MBTIのJ/Pとソシオニクスの合理/非合理のねじれを解き明かす診断。',
+  },
+};`;
 
-export const metadata: Metadata = {
+const replacement1 = `export const metadata: Metadata = {
   title: 'ソシオJ/Pねじれ診断 | MBTIとソシオニクスの構造的ねじれを完全解明',
   description: 'あなたの「J」はどこから来た？MBTIのJ/Pとソシオニクスの合理/非合理のねじれを解き明かす深層心理テスト。16タイプから直接選ぶ近似診断も！',
   openGraph: {
@@ -26,13 +34,20 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.svg'
   }
-};
+};`;
 
-export default function RootLayout({children}: {children: React.ReactNode}) {
-  return (
-    <html lang="ja" className={notoSerif.className}>
-      <head>
-        <link
+content = content.replace(target1, replacement1);
+
+const target2 = `        <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+          crossOrigin="anonymous"
+          referrerPolicy="no-referrer"
+        />
+      </head>`;
+
+const replacement2 = `        <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
           integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
@@ -42,16 +57,16 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-GNTX973GET"></script>
         <script
           dangerouslySetInnerHTML={{
-            __html: `
+            __html: \`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
               gtag('config', 'G-GNTX973GET');
-            `
+            \`
           }}
         />
-      </head>
-      <body suppressHydrationWarning>{children}</body>
-    </html>
-  );
-}
+      </head>`;
+
+content = content.replace(target2, replacement2);
+
+fs.writeFileSync('app/layout.tsx', content);
