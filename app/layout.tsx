@@ -16,13 +16,13 @@ export const metadata: Metadata = {
     title: 'ソシオJ/Pねじれ診断',
     description: 'あなたの「J」はどこから来た？MBTIのJ/Pとソシオニクスの合理/非合理のねじれを解き明かす診断。',
     type: 'website',
-    images: [{ url: '/ogp.png', width: 1200, height: 630, alt: 'ソシオJ/Pねじれ診断' }]
+    images: [{ url: '/opengraph-image?v=2', width: 1200, height: 630, alt: 'ソシオJ/Pねじれ診断' }]
   },
   twitter: {
     card: 'summary_large_image',
     title: 'ソシオJ/Pねじれ診断',
     description: 'あなたの「J」はどこから来た？MBTIのJ/Pとソシオニクスの合理/非合理のねじれを解き明かす診断。',
-    images: ['/ogp.png']
+    images: ['/opengraph-image?v=2']
   },
   icons: {
     icon: '/favicon.svg'
@@ -36,7 +36,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+          integrity="sha512-DTOQO9RWCH3ppGqcWAaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
           crossOrigin="anonymous"
           referrerPolicy="no-referrer"
         />
