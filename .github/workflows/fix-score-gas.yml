@@ -21,38 +21,34 @@ jobs:
           page = Path('app/page.tsx')
           text = page.read_text(encoding='utf-8')
 
-          old_score = '''score: (rawPosData[ie] || 0) + (ieScores[ie] || 0) * 0.4,'''
-          new_score = '''score: rawPosData[ie] || 0,'''
-
+          old_score = 'score: (rawPosData[ie] || 0) + (ieScores[ie] || 0) * 0.4,'
+          new_score = 'score: rawPosData[ie] || 0,'
           if old_score not in text:
               raise SystemExit('Position scoring pattern not found; refusing to modify page.tsx')
           text = text.replace(old_score, new_score, 1)
 
-          old_fetch = '''method: "POST",
-                                    mode: "no-cors",
-                                    headers: { "Content-Type": "application/json" },'''
-          new_fetch = '''method: "POST",
-                                    mode: "no-cors",
-                                    // application/json は CORS の preflight が発生するため、
+          old_header = 'headers: { "Content-Type": "application/json" },'
+          new_header = '''// application/json は CORS の preflight が発生するため、
                                     // GAS Web アプリへ no-cors で送る場合は text/plain を使用する
                                     headers: { "Content-Type": "text/plain;charset=utf-8" },'''
-
-          if old_fetch not in text:
-              raise SystemExit('GAS fetch pattern not found; refusing to modify page.tsx')
-          text = text.replace(old_fetch, new_fetch, 1)
+          if old_header not in text:
+              raise SystemExit('GAS Content-Type pattern not found; refusing to modify page.tsx')
+          text = text.replace(old_header, new_header, 1)
           page.write_text(text, encoding='utf-8')
 
           gas = Path('GAS.txt')
           gas_text = gas.read_text(encoding='utf-8')
-
-          # The web app receives the request body directly; text/plain is intentional.
-          # Add a simple GET health check and remove the invalid setHeaders-based OPTIONS handler.
-          old_options = '''\n// 許可するためのCORS対応 (Options request)\nfunction doOptions(e) {\n  const headers = {\n    "Access-Control-Allow-Origin": "*",\n    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",\n    "Access-Control-Allow-Headers": "Content-Type",\n    "Access-Control-Max-Age": "86400"\n  };\n  return ContentService.createTextOutput("")\n    .setMimeType(ContentService.MimeType.TEXT)\n    .setHeaders(headers);\n}\n'''
-          new_options = '''\n// Webアプリの疎通確認用\nfunction doGet(e) {\n  return ContentService.createTextOutput(JSON.stringify({ status: "ok" }))\n    .setMimeType(ContentService.MimeType.JSON);\n}\n'''
-
-          if old_options not in gas_text:
+          marker = '// 許可するためのCORS対応 (Options request)'
+          start = gas_text.find(marker)
+          if start < 0:
               raise SystemExit('GAS options block not found; refusing to modify GAS.txt')
-          gas_text = gas_text.replace(old_options, new_options, 1)
+          replacement = '''// Webアプリの疎通確認用
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({ status: "ok" }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+'''
+          gas_text = gas_text[:start] + replacement
           gas.write_text(gas_text, encoding='utf-8')
           PY
 
