@@ -4,7 +4,7 @@ let content = fs.readFileSync('app/page.tsx', 'utf-8');
 // Fix GAS URL
 content = content.replace(
   /https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec/g,
-  "https://script.google.com/macros/s/AKfycbyKNxuGhZqSwUCZTfAcjbHmdETzMs_-qzz8nOSZukc8mParcejIPA3U2zQzxqN1MUrK0g/exec"
+  "https://script.google.com/macros/s/AKfycbz0Ujd59YQaq6bLbXW4mBEz5gNeiLU-FeUTdCF-vDTk1HadDYrS6cHMRwCkXpFAOvsX4Q/exec"
 );
 
 const target = `<div className="flex flex-col gap-4">

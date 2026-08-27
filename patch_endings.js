@@ -43,7 +43,7 @@ const replacementFeedback = `                          <button
                                 setIsSending(true);
                                 try {
                                   // GASフェッチ（エラーは握り潰す）
-                                  await fetch("https://script.google.com/macros/s/AKfycbzL7n9xSgT_Yc32-b7eFzZc8u1D8R_QeH7DqK0yM_aOq7cR/exec", {
+                                  await fetch("https://script.google.com/macros/s/AKfycbz0Ujd59YQaq6bLbXW4mBEz5gNeiLU-FeUTdCF-vDTk1HadDYrS6cHMRwCkXpFAOvsX4Q/exec", {
                                     method: "POST",
                                     mode: "no-cors",
                                     headers: { "Content-Type": "application/json" },

@@ -1963,7 +1963,7 @@ export default function App() {
                                 setIsSending(true);
                                 try {
                                   // GASフェッチ（エラーは握り潰す）
-                                  await fetch("https://script.google.com/macros/s/AKfycbyKNxuGhZqSwUCZTfAcjbHmdETzMs_-qzz8nOSZukc8mParcejIPA3U2zQzxqN1MUrK0g/exec", {
+                                  await fetch("https://script.google.com/macros/s/AKfycbz0Ujd59YQaq6bLbXW4mBEz5gNeiLU-FeUTdCF-vDTk1HadDYrS6cHMRwCkXpFAOvsX4Q/exec", {
                                     method: "POST",
                                     mode: "no-cors",
                                     headers: { "Content-Type": "application/json" },

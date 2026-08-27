@@ -3,9 +3,15 @@ function doPost(e) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     const data = JSON.parse(e.postData.contents);
 
-    // Header check
     if (sheet.getLastRow() === 0) {
-      sheet.appendRow(['Timestamp', 'DisplayName', 'MBTI', 'ResultType', 'J_Excuse', 'ActionLogs']);
+      sheet.appendRow([
+        "Timestamp",
+        "DisplayName",
+        "MBTI",
+        "ResultType",
+        "J_Excuse",
+        "ActionLogs"
+      ]);
     }
 
     const row = [
@@ -19,16 +25,24 @@ function doPost(e) {
 
     sheet.appendRow(row);
 
-    return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: "success" }))
       .setMimeType(ContentService.MimeType.JSON);
+
   } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: error.message }))
+    return ContentService
+      .createTextOutput(
+        JSON.stringify({
+          status: "error",
+          message: error.message
+        })
+      )
       .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
-// Webアプリの疎通確認用
 function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({ status: "ok" }))
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: "ok" }))
     .setMimeType(ContentService.MimeType.JSON);
 }
