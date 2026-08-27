@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useRef, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Sparkles,
@@ -294,24 +294,33 @@ export default function App() {
   };
   const sendResultToGAS = async () => {
     try {
-      await fetch("現在のGAS URL", {
-        method: "POST",
-        mode: "no-cors",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          displayName,
-          mbti: detectedMbti,
-          result: topMeta?.name || "",
-          feedback: "",
-          logs: actionLogs,
-        }),
-      });
+      await fetch(
+        "https://script.google.com/macros/s/AKfycbz0Ujd59YQaq6bLbXW4mBEz5gNeiLU-FeUTdCF-vDTk1HadDYrS6cHMRwCkXpFAOvsX4Q/exec",
+        {
+          method: "POST",
+          mode: "no-cors",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8",
+          },
+          body: JSON.stringify({
+            displayName,
+            mbti: detectedMbti,
+            result: topMeta?.name || "",
+            feedback: "",
+            logs: actionLogs,
+          }),
+        }
+      );
     } catch (error) {
       console.error("GAS送信エラー:", error);
     }
   };
+
+  useEffect(() => {
+    if (step === "result") {
+      sendResultToGAS();
+    }
+  }, [step]);
   // Q_game_trash 片付けギミックタップ
   const handleCleanTrash = (id: number) => {
     setTrashItems((prev) => prev.filter((item) => item.id !== id));
