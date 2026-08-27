@@ -1,3 +1,4 @@
+# Temporary workflow used to repair the progress calculation.
 name: Fix quiz progress bar
 
 on:
