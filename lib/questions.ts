@@ -593,22 +593,20 @@ export const QUESTIONS: Record<string, Question> = {
     text: "人との関わりや対人関係において、あなたが最も自然に取るスタンスはどれですか？",
     options: [
       {
-        text: "相手の感情の機微を察して共感したり、親密で温かい関係を築くことを好む",
-        reasonTag: "【感情アプローチ】情緒的共感・親密さ（F機能）",
-        ieDeltas: { Fe: 2.0, Fi: 2.0 },
+        // 2Fi（SEE, IEEの創造Fi）
+        text: "人との距離感や自分の見せ方を状況に合わせて柔軟に変えられる。親しみやすく接して味方を作るのも、メリットや状況に応じて線引きや割り切りをするのも自然にできる。",
+        reasonTag: "【関係の戦略的コントロール】2Fi（SEE, IEE）による柔軟な距離感・演出",
+        ieDeltas: { Fi: 2.5, Se: 1.0, Ne: 1.0 },
         positionDeltas: {
-          leading: { Fe: 2.0, Fi: 2.0 },
-          creative: { Fe: 2.0, Fi: 2.0 },
-          suggestive: { Fe: 1.5, Fi: 1.5 },
-          activating: { Fe: 1.5, Fi: 1.5 },
-          demonstrative: { Fe: 2.0, Fi: 2.0 },
+          creative: { Fi: 2.5 },
+          leading: { Se: 1.5, Ne: 1.5 }
         },
-        jpDelta: { j: 0, p: 1.5 },
-        nextId: "q_game_chappy",
+        jpDelta: { j: 0, p: 2.0 },
+        nextId: "q_see_iee_deep",
       },
       {
-        text: "人と人との心の距離や誠実さ、人としての筋や責任感を重視する。「正しく誠実な関係を守れているか」が基準",
-        reasonTag: "【関係性重視】道徳的距離感・誠実さ（Fi優位）",
+        text: "人との関わりでは「裏切りがなく、お互いに筋や責任を果たしているか」を最も重視する。個人的な感情よりも、人間関係における倫理観や役割・責任を優先するのが当たり前だと思う。",
+        reasonTag: "【ソシオFi：道徳的関係性・義務感】+Fi-p規範・関係の誠実さと筋の尊重",
         ieDeltas: { Fi: 2.5 },
         positionDeltas: {
           leading: { Fi: 2.5 },
@@ -616,7 +614,7 @@ export const QUESTIONS: Record<string, Question> = {
           demonstrative: { Fe: 2.0 },
         },
         jpDelta: { j: 2.0, p: 0 },
-        nextId: "q_game_chappy",
+        nextId: "q_eii_esi_deep",
       },
       {
         text: "自分の内なる世界観や感性、心地よい感覚が軸にある。情緒的なニュアンスや雰囲気をやわらかく表現するのが自然",
@@ -664,6 +662,84 @@ export const QUESTIONS: Record<string, Question> = {
       },
     ],
   },
+  q_see_iee_deep: {
+    id: 'q_see_iee_deep',
+    categoryTag: '👥 現実の突破・影響力vs 新しい可能性・興味の開拓',
+    type: 'standard',
+    text: '人との関係や自分の立ち位置を柔軟にコントロールするとき、あなたの根底にある「一番の原動力」は？',
+    options: [
+      {
+        // 1Se (SEE)
+        text: '人生を試練や障害物を乗り越えるコースのように捉えている。自分の意志や目的を通すために、必要なら直接行動し、力強く周囲を動かして目標を達成したい。',
+        reasonTag: '【1Se/2Fi】SEE：主導権握り・障害突破・現実への圧倒的影響力',
+        ieDeltas: { Se: 3.0, Fi: 2.0 },
+        positionDeltas: { leading: { Se: 5.0 }, creative: { Fi: 2.0 } },
+        jpDelta: { j: 1.5, p: 0 },
+        nextId: 'q_game_chappy'
+      },
+      {
+        // 1Ne (IEE)
+        text: '人の興味や可能性を引き出すのが好き。「何かが始まるとき」に最も惹かれ、多様な人と関わるのが得意。一方で、最後まで完璧にやり遂げることからは少し距離がある。',
+        reasonTag: '【1Ne/2Fi】IEE：可能性の開拓・知的好奇心・拡散と着手の魅力',
+        ieDeltas: { Ne: 3.0, Fi: 2.0 },
+        positionDeltas: { leading: { Ne: 5.0 }, creative: { Fi: 2.0 } },
+        jpDelta: { j: 0, p: 2.5 },
+        nextId: 'q_game_chappy'
+      }
+    ]
+  },
+  q_iei_sei_deep: {
+    id: 'q_iei_sei_deep',
+    categoryTag: '👥 時間の展開・独自のイメージ vs 身体感覚・不快の回避',
+    type: 'standard',
+    text: 'あなたが自分の内なる感性や雰囲気を表現するとき、その背景にある「感覚」に一番近いものは？',
+    options: [
+      {
+        // 1Ni (IEI)
+        text: '「まぁなんとかなる〜」という感覚で未来の流れを直感的に捉えているが、現実の家事や管理はちょっとだらしなく、予期せぬ行動や独特な空想の世界に浮遊しがち。',
+        reasonTag: '【1Ni/2Fe】IEI：時間を超えたつながり・独自のビジョン・浮世離れしたイメージ',
+        ieDeltas: { Ni: 3.0, Fe: 2.0 },
+        positionDeltas: { leading: { Ni: 3.0 }, creative: { Fe: 2.0 } },
+        jpDelta: { j: 0, p: 2.0 },
+        nextId: 'q_game_chappy'
+      },
+      {
+        // 1Si (SEI)
+        text: '自分の体や感覚の状態にとても敏感。「イライラする空気や無理な疲労などの不快感」を避けることが大きな動機であり、心地よい環境や穏やかな空間で過ごすことを大切にする。',
+        reasonTag: '【1Si/2Fe】SEI：身体感覚の観察・不快の回避・コンフォート優先',
+        ieDeltas: { Si: 3.0, Fe: 2.0 },
+        positionDeltas: { leading: { Si: 3.0 }, creative: { Fe: 2.0 } },
+        jpDelta: { j: 0, p: 2.0 },
+        nextId: 'q_game_chappy'
+      }
+    ]
+  },
+  q_eii_esi_deep: {
+    id: 'q_eii_esi_deep',
+    categoryTag: '👥 【関係性の実現手段】理想的な変化への期待 vs 直接的な行動と責任',
+    type: 'standard',
+    text: '人との正しく誠実な関係を守ろうとするとき、あなたが取る「具体的なアプローチ」はどちらですか？',
+    options: [
+      {
+        // 2Ne (EII)
+        text: '「どうなれるか」「どうすれば良くなるか」という理想的な未来や可能性に着目する。相手や状況に対して、より良くなるためのアイデアや期待を提示して導こうとする。',
+        reasonTag: '【1Fi/2Ne】EII：道徳的基準・理想や可能性への期待・内面的な導き',
+        ieDeltas: { Fi: 3.0, Ne: 2.0 },
+        positionDeltas: { leading: { Fi: 3.0 }, creative: { Ne: 2.0 } },
+        jpDelta: { j: 1.5, p: 0 },
+        nextId: 'q_game_chappy'
+      },
+      {
+        // 2Se (ESI)
+        text: '問題や意見の食い違いに直面したとき、直接行動を起こして解決を図る。状況に応じて必要な圧力をかけたり、現場で責任をしっかり果たし、相手にも同じ真剣さを求める。',
+        reasonTag: '【1Fi/2Se】ESI：道徳的防衛・直接的介入・現場での責任と要求',
+        ieDeltas: { Fi: 3.0, Se: 2.0 },
+        positionDeltas: { leading: { Fi: 3.0 }, creative: { Se: 2.0 } },
+        jpDelta: { j: 2.0, p: 0 },
+        nextId: 'q_game_chappy'
+      }
+    ]
+  },
 
   // --------------------------------------------------------------------------
   // q_game_chappy: チャッピー突発Fe襲来ギミック
@@ -675,7 +751,7 @@ export const QUESTIONS: Record<string, Question> = {
     text: "画面に突然ハイテンションなマスコット「チャッピー」が乱入してきました！\n「{NAME}～～～～！！！！！！ チャッピーだぞーーー！！！！！！ 今日もいっぱい遊ぼ～～～！！！！🥹💕✨ ぎゅ～～～～～～！！！！！！」\nこの強烈な感情的アプローチを受けたとき、あなたの心の中で最も自然に出てくる反応・態度はどれですか？",
     options: [
       {
-        text: "A：「わーー！！チャッピー！！💕 いっぱい遊ぼ～～～！！」",
+        text: "「わーー！！チャッピー！！💕 いっぱい遊ぼ～～～！！」",
         reasonTag:
           "【主導Fe】EIE / ESE：場の感情的熱量そのものにダイレクトに乗り、場を盛り上げる",
         chappyResponse:
@@ -692,7 +768,7 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: "q8",
       },
       {
-        text: "B：「ふふっｗ なにそれ、かわいいじゃん💕」",
+        text: "「ふふっｗ なにそれ、かわいいじゃん💕」",
         reasonTag:
           "【補助Fe】IEI / SEI：その場の感情的な雰囲気をやわらかく受け取って楽しむ",
         chappyResponse: "えへへ、かわいい！？照れちゃうな〜〜🌸 ふふっ💕",
@@ -707,7 +783,7 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: "q8",
       },
       {
-        text: "C：「何それｗｗｗ おもろいｗ」",
+        text: "「何それｗｗｗ おもろいｗ」",
         reasonTag:
           "【証明Fe/Ne創造】IEE / SEE / ILE：突飛なノリ・面白さに食いつき、柔軟に乗っかる",
         chappyResponse: "おもしろいでしょ！！もっと変なことしちゃうぞ〜〜🥹✨",
@@ -723,7 +799,7 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: "q8",
       },
       {
-        text: "D：「おえー」",
+        text: "「おえー」",
         reasonTag: "【動員Fe/Se主導】SLE：感情的親密さへの即時・直接的身体反応",
         chappyResponse: "お、おえー！？ひどい！！でもめげないぞ！！💦",
         chappyEmoji: "🥲", // already 🥲
@@ -741,7 +817,7 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: "q8",
       },
       {
-        text: "E：「うるさいｗ 今それやる必要ある？」",
+        text: "「うるさいｗ 今それやる必要ある？」",
         reasonTag:
           "【主導Te】LSE / LIE：目的・実用・必要性による感情ノリの整理",
         chappyResponse: "うっ……！必要性……！じゃあ静かに見守るね……🥹",
@@ -756,23 +832,23 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: "q8",
       },
       {
-        text: "F：「相手によるかな。親しい人ならいいけど」",
+        text: "「相手によるかな。親しい人ならいいけど」",
         reasonTag:
           "【主導Fi】ESI / EII：人間関係の距離感・文脈・誠実さを評価するスタンス",
         chappyResponse:
           "そっか、信頼関係が大事だもんね！仲良くなれるようにがんばる！✨",
         chappyEmoji: "😌",
-        ieDeltas: { Fi: 3.5, Se: 1.5, Ne: 1.5 },
+        ieDeltas: { Fi: 2.5, Se: 1.5, Ne: 1.5 },
         positionDeltas: {
-          leading: { Fi: 3.5 },
-          ignoring: { Fe: 2.5 },
+          leading: { Fi: 2.5 },
+          ignoring: { Fe: 1.5 },
           demonstrative: { Si: 2.0, Ni: 2.0 },
         },
         jpDelta: { j: 2.0, p: 0 },
         nextId: "q8",
       },
       {
-        text: "G：「こういうノリも悪くない。」",
+        text: "「こういうノリも悪くない。」",
         reasonTag:
           "【暗示Fe】LII / LSI：自力で感情の場を作るのは苦手だが、外から提供される感情刺激は歓迎",
         chappyResponse:
@@ -788,7 +864,7 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: "q8",
       },
       {
-        text: "H：「こういう感情的なノリ、苦手。放っておいてほしい」",
+        text: "「こういう感情的なノリ、苦手。放っておいてほしい」",
         reasonTag:
           "【脆弱Fe】ILI / SLI：外からの感情的介入やテンションの押し付けそのものを嫌う",
         chappyResponse:
@@ -819,7 +895,7 @@ export const QUESTIONS: Record<string, Question> = {
         reasonTag: "【+Fi-p】道徳と義務の遵守（ESI/EII/LSE文化）",
         ieDeltas: { Fi: 2.5, Te: 2.0, Si: 1.5 },
         positionDeltas: {
-          leading: { Fi: 2.5 },
+          leading: { Fi: 3.5 },
           creative: { Ne: 1.5, Fi: 1.5, Si: 1.5, Ni: 1.5, Se: 1.5 },
           role: { Fi: 2.0, Te: 1.5 },
           vulnerable: { Ne: 1.0, Se: 1.0, Si: 1.0, Ni: 1.0 },
@@ -855,8 +931,8 @@ export const QUESTIONS: Record<string, Question> = {
           "【IEI的リアリティ】空想・夢見がち・愛嬌・生活感のなさと自由（INFPゾーン）",
         ieDeltas: { Ni: 2.5, Fe: 2.0 },
         positionDeltas: {
-          leading: { Ni: 2.5 },
-          creative: { Fe: 2.0, Ni: 1.0 },
+          leading: { Ni: 3.5 },
+          creative: { Fe: 3.0, Ni: 2.0 },
           role: { Si: 1.0 },
           vulnerable: { Te: 2.0 },
           suggestive: { Se: 1.5 },
@@ -873,8 +949,8 @@ export const QUESTIONS: Record<string, Question> = {
           "【SEI的リアリティ】五感・美意識・マイペース・快適さ優先（ISFPゾーン）",
         ieDeltas: { Si: 2.5, Fe: 2.0 },
         positionDeltas: {
-          leading: { Si: 2.5 },
-          creative: { Fe: 2.0, Si: 1.0 },
+          leading: { Si: 3.5 },
+          creative: { Fe: 3.0, Si: 2.0 },
           role: { Ni: 1.0 },
           vulnerable: { Te: 2.0 },
           suggestive: { Ne: 1.5 },
@@ -915,8 +991,8 @@ export const QUESTIONS: Record<string, Question> = {
     text: "日常のコミュニケーションにおいて、あなたの表情や感情表現はどのように現れやすいですか？",
     options: [
       {
-        text: "人あたりはやわらかく、少しふわふわした親しみやすさや愛想を自然に出す。場の雰囲気をなごませるのが得意",
-        reasonTag: "【補助Fe】SEI / IEIの親しみやすさ・愛嬌・雰囲気調整",
+        text: "やわらかい愛嬌や和やかな雰囲気で場を整える。あるいは、言葉・芸術・世界観などを通して自分の感情やムードを繊細に醸し出し、人と心地よく繋がろうとする",
+        reasonTag: "【創造Fe (+Fe-c)】IEI / SEIの雰囲気調律・表現的感情出力（芸術・ポエム・その場の和ませ）",
         ieDeltas: { Fe: 2.5, Si: 2.0, Ni: 2.0 },
         positionDeltas: {
           leading: { Si: 2.0, Ni: 2.0, Fe: 2.0 },
@@ -967,11 +1043,11 @@ export const QUESTIONS: Record<string, Question> = {
         nextId: "q10",
       },
       {
-        text: "誰にでも愛想を振りまくことはしない。人としての誠実さや礼儀、対人距離の規律を重視し、信用に足る相手とだけ深く確実に関わる",
+        text: "自分の好き嫌いや感情に関わらず、人としての誠実さ・道徳的規範・役割への責任を重んじる。不誠実や規律違反を許さず、正しい対人距離と節度を守って関わる",
         reasonTag: "【主導Fi】ESI / EIIの慎重な関係構築・内面集中",
         ieDeltas: { Fi: 3.0, Ne: 1.0, Se: 1.0 },
         positionDeltas: {
-          leading: { Fi: 3.0 },
+          leading: { Fi: 2.0 },
           creative: { Se: 1.5, Ne: 1.5 },
           role: { Ti: 1.0 },
           vulnerable: { Ne: 1.0, Se: 1.0 },
@@ -1113,7 +1189,7 @@ export const QUESTIONS: Record<string, Question> = {
     text: "人間関係の距離感や「配慮・感情」に対するあなたの感覚に一番近いセリフは？",
     options: [
       {
-        text: "「ヤバい奴は避けるけど、『太った？』とか『おえー』みたいな冗談を本気にするなよw デリカシーより現実の結果が全てでしょ",
+        text: "「ヤバい奴は避けるけど、『太った？』とか『おえー』みたいな冗談を本気にするなよw デリカシーより現実の結果が全てでしょ」",
         reasonTag:
           "【4Fi：SLE】リスク回避（Ni/Te）は働くが「冗談を事実で受け取るな」というスタンスで物理・現実のコミュニケーション（Se/Ti）を優先する",
         ieDeltas: { Se: 3.0, Ti: 2.0, Ni: 1.5 },
@@ -1880,7 +1956,7 @@ export const QUESTIONS: Record<string, Question> = {
           leading: { Ti: 1.5, Te: 1.5 },
           creative: { Ti: 1.5, Te: 1.5 },
         },
-        nextId: "q_darling_liar",
+        nextId: "q_perception_1",
         jpDelta: {
           j: 0,
           p: 0,
@@ -1896,7 +1972,7 @@ export const QUESTIONS: Record<string, Question> = {
           leading: { Fi: 1.5, Fe: 1.5 },
           creative: { Fi: 1.5, Fe: 1.5 },
         },
-        nextId: "q_darling_liar",
+        nextId: "q_perception_1",
         jpDelta: {
           j: 0,
           p: 0,
@@ -1904,7 +1980,327 @@ export const QUESTIONS: Record<string, Question> = {
       },
     ],
   },
+  // ==========================================================================
+  // 【設問1】知覚機能（Ni / Ne / Si / Se）4択 - 思考・行動の全体像
+  // ==========================================================================
+  q_perception_1: {
+    id: 'q_perception_1',
+    categoryTag: '🧭 知覚機能4分類（第1問：全体傾向）',
+    type: 'standard',
+    text: 'あなたの頭の中の世界観や、行動のスタイルに一番近いものは？',
+    options: [
+      {
+        // Ni（1Ni + 2Niの統合）
+        text: '日常から少し距離を取り、時間を超えたつながりや未来の大まかな流れ・展開を直感的に見抜く。想像力が豊かで、そのイメージを使って大切な活動を前に進める。',
+        reasonTag: '【Ni】IEI, ILI, EIE, LIE',
+        ieDeltas: { Ni: 3.0 },
+        positionDeltas: { leading: { Ni: 2.5 }, creative: { Ni: 2.5 } },
+        jpDelta: { j: 0, p: 0 },
+        nextId: 'q_perception_2'
+      },
+      {
+        // Ne（1Ne + 2Neの統合）
+        text: '共通点を見つけるのが早く、「何かが始まるとき」や「どうなれるかという可能性」に強く惹かれる。新しいアイデアを大切な課題の解決や理想の未来に役立てたい。',
+        reasonTag: '【Ne】ILE, IEE, LII, EII',
+        ieDeltas: { Ne: 3.0 },
+        positionDeltas: { leading: { Ne: 2.5 }, creative: { Ne: 2.5 } },
+        jpDelta: { j: 0, p: 0 },
+        nextId: 'q_perception_2'
+      },
+      {
+        // Si（1Si + 2Siの統合）※片付け＝Se、Si＝心地よければ散らかっててもOK
+        text: '自分や周りが心地よく過ごせる状態を大切にする。体調や好みに気づき、環境を整えたり、人が快適に楽しめるよう何かしてあげたりする。',
+        reasonTag: '【Si】SEI, SLI, ESE, LSE',
+        ieDeltas: { Si: 3.0 },
+        positionDeltas: { leading: { Si: 2.5 }, creative: { Si: 2.5 } },
+        jpDelta: { j: 0, p: 0 },
+        nextId: 'q_perception_2'
+      },
+      {
+        // Se（1Se + 2Seの統合）
+        text: '自分の意志や目的を現実に通していく。必要なら自分から動き、相手や状況に働きかけて、主導権を取りながら物事を前に進める。',
+        reasonTag: '【Se】SEE, SLE, ESI, LSI',
+        ieDeltas: { Se: 3.0 },
+        positionDeltas: { leading: { Se: 2.5 }, creative: { Se: 2.5 } },
+        jpDelta: { j: 2.0, p: 0 }, // SeのみJ加算
+        nextId: 'q_perception_2'
+      }
+    ]
+  },
 
+  // ==========================================================================
+  // 【設問2】知覚機能（Ni / Ne / Si / Se）4択 - 課題解決と現実への関わり
+  // ==========================================================================
+  q_perception_2: {
+    id: 'q_perception_2',
+    categoryTag: '🧭 知覚機能4分類（第2問：課題・取り組み方）',
+    type: 'standard',
+    text: '課題や環境に向き合う時、あなたが一番自然にとる姿勢は？',
+    options: [
+      {
+        // Ni
+        text: '今起きていることだけでなく、この先どうつながっていくのかを考える。出来事を長い時間の流れの中で捉え、今の状況がどんな意味を持つのかを考える。',
+        reasonTag: '【Ni】IEI, ILI, EIE, LIE',
+        ieDeltas: { Ni: 3.0 },
+        positionDeltas: { leading: { Ni: 2.5 }, creative: { Ni: 2.5 } },
+        jpDelta: { j: 0, p: 0 },
+        nextId: 'q_romantic_style'
+      },
+      {
+        // Ne
+        text: '一つの答えに決めつけず、別の可能性や見方を次々と思いつく。『もしこうだったら？』『別の使い方は？』と考え、まだ見えていない選択肢を探す。',
+        reasonTag: '【Ne】ILE, IEE, LII, EII',
+        ieDeltas: { Ne: 3.0 },
+        positionDeltas: { leading: { Ne: 2.5 }, creative: { Ne: 2.5 } },
+        jpDelta: { j: 0, p: 0 },
+        nextId: 'q_romantic_style'
+      },
+      {
+        // Si
+        text: '実際に感じる快・不快や使いやすさに目を向ける。無理なく続けられる状態を作り、必要なら環境や方法を少しずつ調整する。',
+        reasonTag: '【Si】SEI, SLI, ESE, LSE',
+        ieDeltas: { Si: 3.0 },
+        positionDeltas: { leading: { Si: 2.5 }, creative: { Si: 2.5 } },
+        jpDelta: { j: 0, p: 0 },
+        nextId: 'q_romantic_style'
+      },
+      {
+        // Se
+        text: '現実に起きていることへ直接働きかける。相手や状況の反応を見ながら、自分で動いたり周囲を動かしたりして、望む状態に近づけていく。',
+        reasonTag: '【Se】SEE, SLE, ESI, LSI',
+        ieDeltas: { Se: 3.0 },
+        positionDeltas: { leading: { Se: 2.5 }, creative: { Se: 2.5 } },
+        jpDelta: { j: 2.0, p: 0 }, // SeのみJ加算
+        nextId: 'q_romantic_style'
+      }
+    ]
+  },
+  q_romantic_style: {
+    id: "q_romantic_style",
+    categoryTag: "🧭 対人・ロマンチック・スタイル（第3問：関係性）",
+    type: "standard",
+    text: "親しい人やパートナーとの「理想的な関わり方や距離感」に一番近いのは？",
+    options: [
+      {
+        // 侵略者（Se軸）
+        text: "自分にとって大切なことや譲れない基準を持っている。必要な場面では相手に合わせるだけでなく、自分の意思も通して関係を築きたい。",
+        reasonTag: "【侵略者】Se軸（SEE, SLE, ESI, LSI）",
+        ieDeltas: { Se: 3.0 },
+        positionDeltas: {
+          leading: { Se: 2.5 },
+          creative: { Se: 2.5 },
+          activating: { Ni: 1.5 },
+          suggestive: { Ni: 1.5 },
+        },
+        jpDelta: { j: 1.0, p: 0 }, // Se軸なのでJ加算
+        nextId: "q_suggestive_mobilizing",
+      },
+      {
+        // 犠牲者（Ni軸）
+        text: "最初は好意を疑いがち。力や強い軸を持つ相手に惹かれ、相手の優越感や試練を受け止めながら引き寄せられる関係を好む。",
+        reasonTag: "【犠牲者】Ni軸（IEI, ILI, EIE, LIE）",
+        ieDeltas: { Ni: 3.0 },
+        positionDeltas: {
+          leading: { Ni: 2.5 },
+          creative: { Ni: 2.5 },
+          activating: { Se: 1.5 },
+          suggestive: { Se: 1.5 },
+        },
+        jpDelta: { j: 0, p: 0 },
+        nextId: "q_suggestive_mobilizing",
+      },
+      {
+        // 子ども（Ne軸）
+        text: "面白い話や新しい発想を共有しながら、楽しく関係を広げていきたい。自分では気づかなかった可能性を示してくれたり、興味を広げてくれる相手に惹かれる。",
+        reasonTag: "【子ども】Ne軸（ILE, IEE, LII, EII）",
+        ieDeltas: { Ne: 3.0 },
+        positionDeltas: {
+          leading: { Ne: 2.5 },
+          creative: { Ne: 2.5 },
+          activating: { Si: 1.5 },
+          suggestive: { Si: 1.5 },
+        },
+        jpDelta: { j: 0, p: 0 },
+        nextId: "q_suggestive_mobilizing",
+      },
+      {
+        // 保護者（Si軸）※お世話嫌いなSe軸（SLE/ESI）が誤選しないよう、日常ケア・世話焼き感を前面に出す
+        text: "自分や周りが不快にならず、心地よく過ごせる状態を大切にする。体調や好み、ちょっとした不快感によく気づき、その場に合わせて環境や過ごし方を自然に調整したい。",
+        reasonTag: "【保護者】Si軸（SEI, SLI, ESE, LSE）",
+        ieDeltas: { Si: 3.0 },
+        positionDeltas: {
+          leading: { Si: 2.5 },
+          creative: { Si: 2.5 },
+          activating: { Ne: 1.5 },
+          suggestive: { Ne: 1.5 },
+        },
+        jpDelta: { j: 0, p: 0 },
+        nextId: "q_suggestive_mobilizing",
+      },
+    ],
+  },
+  q_suggestive_mobilizing: {
+    id: 'q_suggestive_mobilizing',
+    categoryTag: '✨ 無意識の欲求（複数選択可）',
+    type: 'multiple',
+    text: 'あなたが「こういう風にしてもらえるとすごく助かる」「自然と惹かれる・安心する」と感じるものを**すべて**選んでください。',
+    nextId: 'q_mobilizing',
+    options: [
+      {
+        text: "考えているだけで終わらず、まず動いてみるきっかけがほしい。具体的な行動や挑戦に誘ってもらえると、自分一人では動き出しにくいことにも取り組みやすい。",
+        reasonTag: "【Ni主導 → Se暗示】ILI・IEI",
+        ieDeltas: { Ni: 1.5, Se: 1.5 },
+        positionDeltas: { leading: { Ni: 1.0 }, suggestive: { Se: 5.0 }, activating: { Se: 3.0 } },
+        jpDelta: { j: 0, p: 1.0 },
+      },
+      {
+        text: "目の前のことを進めるだけでなく、この先どうなるのか、どこへ向かうのかを示してほしい。今の行動がどんな未来につながるのか分かると、進む方向を決めやすい。",
+        reasonTag: "【Se主導 → Ni暗示】SLE・SEE",
+        ieDeltas: { Se: 1.5, Ni: 1.5 },
+        positionDeltas: { leading: { Se: 1.0 }, suggestive: { Ni: 5.0 }, activating: { Ni: 3.0 }},
+        jpDelta: { j: 0, p: 1.0 },
+      },
+      {
+        text: "今の心地よさを大切にしながら、自分では思いつかない新しい楽しみや可能性も教えてほしい。「こんなのもあるよ」と気軽に提案してもらえると嬉しい。",
+        reasonTag: "【Si主導 → Ne暗示】SEI・SLI",
+        ieDeltas: { Si: 1.5, Ne: 1.5 },
+        positionDeltas: { leading: { Si: 1.0 }, suggestive: { Ne: 5.0 }, activating: { Ne: 3.0 } },
+        jpDelta: { j: 0, p: 1.0 },
+      },
+      {
+        text: "新しいことを考えたり試したりする一方で、自分の体調や本当の欲求には気づきにくい。安心して過ごせる環境を整えてくれたり、休息や心地よさを気にかけてもらえると助かる。",
+        reasonTag: "【Ne主導 → Si暗示】ILE・IEE",
+        ieDeltas: { Ne: 1.5, Si: 1.5 },
+        positionDeltas: { leading: { Ne: 1.0 }, suggestive: { Si: 5.0 }, activating: { Si: 3.0 } },
+        jpDelta: { j: 0, p: 1.0 },
+      },
+      {
+        text: "効率や成果だけでなく、人との信頼関係や大切な気持ちも知りたい。自分と相手がどういう関係なのか、何を大切にしているのかを分かりやすく示してもらえると安心する。",
+        reasonTag: "【Te主導 → Fi暗示】LIE・LSE",
+        ieDeltas: { Te: 1.5, Fi: 1.5 },
+        positionDeltas: { leading: { Te: 1.0 }, suggestive: { Fi: 5.0 }, activating: { Fi: 3.0 } },
+        jpDelta: { j: 1.0, p: 0 },
+      },
+      {
+        text: "自分が大切だと思うことを、現実の中でも実現する方法を知りたい。具体的に何をすれば役に立つのか、成果につながるのかを分かりやすく教えてもらえると助かる。",
+        reasonTag: "【Fi主導 → Te暗示】ESI・EII",
+        ieDeltas: { Fi: 1.5, Te: 1.5 },
+        positionDeltas: { leading: { Fi: 1.0 }, suggestive: { Te: 5.0 }, activating: { Te: 3.0 }},
+        jpDelta: { j: 1.0, p: 0 },
+      },
+      {
+        text: "筋道を立てて考えるだけでなく、明るく楽しい雰囲気や感情の動きにも触れたい。面白い話やノリのいい反応で、気軽に場を盛り上げてもらえると嬉しい。",
+        reasonTag: "【Ti主導 → Fe暗示】LII・LSI",
+        ieDeltas: { Ti: 1.5, Fe: 1.5 },
+        positionDeltas: { leading: { Ti: 1.0 }, suggestive: { Fe: 5.0 }, activating: { Fe: 3.0 }},
+        jpDelta: { j: 1.0, p: 0 },
+      },
+      {
+        text: "物事を体系立てて整理し、概念を分かりやすく説明してくれる人を頼りにしたい。自分の行動がなぜ意味を持つのか、筋道を立てて説明してもらえると安心して動ける。",
+        reasonTag: "【Fe主導 → Ti暗示】EIE・ESE",
+        ieDeltas: { Fe: 1.5, Ti: 1.5 },
+        positionDeltas: { leading: { Fe: 1.0 }, suggestive: { Ti: 5.0 }, activating: { Ti: 3.0 }},
+        jpDelta: { j: 1.0, p: 0 },
+      },
+    ],
+  },
+  q_mobilizing: {
+    id: "q_mobilizing",
+    categoryTag: "🔥 活性化・動員（複数選択可）",
+    type: "multiple",
+    text: "あなたが「これを示してもらえると動きやすい」「これを提案されるとやる気が出る、助かる」けど、貰いすぎても過剰に感じるものを**すべて**選んでください。",
+    nextId: "q_darling_liar",
+    options: [
+      {
+        text: "🔮 考えたことを実際の行動につなげたい。自分だけで考え続けるより、「まずやってみよう」と背中を押してもらえたり、挑戦するきっかけを与えてもらえると動きやすい。",
+        reasonTag: "【Ni補助 → Se動員】LIE・EIE",
+        ieDeltas: { Ni: 1.0, Se: 2.0 },
+        positionDeltas: {
+          creative: { Ni: 1.0 },
+          activating: { Se: 5.0 },
+          suggestive: { Se: 3.0 },
+        },
+        jpDelta: { j: 1.0, p: 0 },
+      },
+      {
+        text: "⚔️ 自分の目的に向かって進みたいが、今どう動くべきか迷ったり焦ったりすることがある。この先どうなりそうか、今は急ぐべきかを示してもらえると、落ち着いて判断しやすい。",
+        reasonTag: "【Se補助 → Ni動員】LSI・ESI",
+        ieDeltas: { Se: 1.0, Ni: 2.0 },
+        positionDeltas: {
+          creative: { Se: 1.0 },
+          activating: { Ni: 5.0 },
+          suggestive: { Ni: 3.0 },
+        },
+        jpDelta: { j: 1.0, p: 0 },
+      },
+      {
+        text: "🌿 いつものやり方を大切にしつつも、もっと便利にしたり良くしたりできる方法も知りたい。「こんなやり方もあるよ」と、新しい可能性や改善案を示してもらえると試してみたくなる。",
+        reasonTag: "【Si補助 → Ne動員】ESE・LSE",
+        ieDeltas: { Si: 1.0, Ne: 2.0 },
+        positionDeltas: {
+          creative: { Si: 1.0 },
+          activating: { Ne: 5.0 },
+          suggestive: { Ne: 3.0 },
+        },
+        jpDelta: { j: 1.0, p: 0 },
+      },
+      {
+        text: "💡 物事の可能性や理想について考えるのは好きだが、自分の疲れや緊張には気づきにくい。リラックスできる環境を整えてもらったり、楽しい過ごし方を提案してもらえると助かる。",
+        reasonTag: "【Ne補助 → Si動員】LII・EII",
+        ieDeltas: { Ne: 1.0, Si: 2.0 },
+        positionDeltas: {
+          creative: { Ne: 1.0 },
+          activating: { Si: 5.0 },
+          suggestive: { Si: 3.0 },
+        },
+        jpDelta: { j: 1.0, p: 0 },
+      },
+      {
+        text: "📊 人の気持ちや好意を自分だけで読み取るより、相手から分かりやすく示してもらえると安心する。自分が大切にされていることや、相手がどう感じているのかを自然に伝えてもらえると、信頼して関係を築きやすい。",
+        reasonTag: "【Te補助 → Fi動員】ILI・SLI",
+        ieDeltas: { Te: 1.0, Fi: 2.0 },
+        positionDeltas: {
+          creative: { Te: 1.0 },
+          activating: { Fi: 5.0 },
+          suggestive: { Fi: 3.0 },
+        },
+        jpDelta: { j: 0, p: 1.0 },
+      },
+      {
+        text: "🗡️ 自分が興味を持っていることについて、役立つ知識や具体的な方法を教えてもらえると安心する。自分だけで情報を選ぶより、詳しい人から『これが有効だよ』と示してもらえると動きやすい。",
+        reasonTag: "【Fi補助 → Te動員】IEE・SEE",
+        ieDeltas: { Fi: 1.0, Te: 2.0 },
+        positionDeltas: {
+          creative: { Fi: 1.0 },
+          activating: { Te: 5.0 },
+          suggestive: { Te: 3.0 },
+        },
+        jpDelta: { j: 0, p: 1.0 },
+      },
+      {
+        text: "🧠 考えを整理したり可能性を考えたりするだけでなく、前向きで明るい反応を返してもらえると動きやすい。「それ面白そう」「やってみよう」と気持ちを明るくしてくれるような雰囲気があると嬉しい。",
+        reasonTag: "【Ti補助 → Fe動員】ILE・SLE",
+        ieDeltas: { Ti: 1.0, Fe: 2.0 },
+        positionDeltas: {
+          creative: { Ti: 1.0 },
+          activating: { Fe: 5.0 },
+          suggestive: { Fe: 3.0 },
+        },
+        jpDelta: { j: 0, p: 1.0 },
+      },
+      {
+        text: "🎭 考えや信念が混乱したとき、物事を筋道立てて整理してもらえると安心する。自分の行動や考えが、どんな理屈につながっているのかを分かりやすく説明してもらえると納得しやすい。",
+        reasonTag: "【Fe補助 → Ti動員】IEI・SEI",
+        ieDeltas: { Fe: 1.0, Ti: 2.0 },
+        positionDeltas: {
+          creative: { Fe: 1.0 },
+          activating: { Ti: 5.0 },
+          suggestive: { Ti: 3.0 },
+        },
+        jpDelta: { j: 0, p: 1.0 },
+      },
+    ],
+  },
   // ==========================================================================
   // 【ILI vs LII vs LSI 専用設問1】
   // 抽象情報をどう処理するか
