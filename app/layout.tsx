@@ -9,6 +9,7 @@ const notoSerif = Noto_Serif_JP({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://socionics-jp-paradox.vercel.app'),
   title: 'ソシオJ/Pねじれ診断 | MBTIとソシオニクスの構造的ねじれを完全解明',
   description: 'あなたの「J」はどこから来た？MBTIのJ/Pとソシオニクスの合理/非合理のねじれを解き明かす深層心理テスト。16タイプから直接選ぶ近似診断も！',
   openGraph: {
