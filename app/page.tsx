@@ -692,7 +692,7 @@ export default function App() {
     return (["Ti", "Te", "Ni", "Ne", "Si", "Se", "Fi", "Fe"] as IE[])
       .map((ie) => ({
         ie,
-        score: (rawPosData[ie] || 0) + (ieScores[ie] || 0) * 0.4,
+        score: (rawPosData[ie] || 0),
       }))
       .sort((a, b) => b.score - a.score);
   };
