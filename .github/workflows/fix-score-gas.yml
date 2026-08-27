@@ -1,0 +1,66 @@
+name: Apply score and GAS fixes
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply fixes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          page = Path('app/page.tsx')
+          text = page.read_text(encoding='utf-8')
+
+          old_score = '''score: (rawPosData[ie] || 0) + (ieScores[ie] || 0) * 0.4,'''
+          new_score = '''score: rawPosData[ie] || 0,'''
+
+          if old_score not in text:
+              raise SystemExit('Position scoring pattern not found; refusing to modify page.tsx')
+          text = text.replace(old_score, new_score, 1)
+
+          old_fetch = '''method: "POST",
+                                    mode: "no-cors",
+                                    headers: { "Content-Type": "application/json" },'''
+          new_fetch = '''method: "POST",
+                                    mode: "no-cors",
+                                    // application/json は CORS の preflight が発生するため、
+                                    // GAS Web アプリへ no-cors で送る場合は text/plain を使用する
+                                    headers: { "Content-Type": "text/plain;charset=utf-8" },'''
+
+          if old_fetch not in text:
+              raise SystemExit('GAS fetch pattern not found; refusing to modify page.tsx')
+          text = text.replace(old_fetch, new_fetch, 1)
+          page.write_text(text, encoding='utf-8')
+
+          gas = Path('GAS.txt')
+          gas_text = gas.read_text(encoding='utf-8')
+
+          # The web app receives the request body directly; text/plain is intentional.
+          # Add a simple GET health check and remove the invalid setHeaders-based OPTIONS handler.
+          old_options = '''\n// 許可するためのCORS対応 (Options request)\nfunction doOptions(e) {\n  const headers = {\n    "Access-Control-Allow-Origin": "*",\n    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",\n    "Access-Control-Allow-Headers": "Content-Type",\n    "Access-Control-Max-Age": "86400"\n  };\n  return ContentService.createTextOutput("")\n    .setMimeType(ContentService.MimeType.TEXT)\n    .setHeaders(headers);\n}\n'''
+          new_options = '''\n// Webアプリの疎通確認用\nfunction doGet(e) {\n  return ContentService.createTextOutput(JSON.stringify({ status: "ok" }))\n    .setMimeType(ContentService.MimeType.JSON);\n}\n'''
+
+          if old_options not in gas_text:
+              raise SystemExit('GAS options block not found; refusing to modify GAS.txt')
+          gas_text = gas_text.replace(old_options, new_options, 1)
+          gas.write_text(gas_text, encoding='utf-8')
+          PY
+
+      - name: Commit fixes and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/fix-score-gas.yml
+          git add app/page.tsx GAS.txt
+          git commit -m "fix: stop global IE scores leaking into Model A positions and fix GAS request"
+          git push
