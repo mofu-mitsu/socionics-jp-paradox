@@ -417,11 +417,17 @@ export default function App() {
     const matches = calculateTypeMatches(finalIeScores, finalPosSignatures);
     const topType = matches[0]?.type;
 
-    if (["ILI"].includes(topType) && !hasSeenIliLiiLsiSplit) {
+    const isSelfENTJ = detectedMbti?.toUpperCase() === "ENTJ";
+    const isSelfINTP = detectedMbti?.toUpperCase() === "INTP";
+
+    if (topType === "ILI" && !isSelfINTP && !hasSeenIliLiiLsiSplit) {
       setHasSeenIliLiiLsiSplit(true);
       setIsRecMode(true);
       setCurrentQId("q_ili_lii_lsi_split_1");
-    } else if (["SLE"].includes(topType) && !hasSeenSleSplit) {
+    } else if (topType === "SLE" && !isSelfENTJ && !hasSeenSleSplit) {
+      setHasSeenSleSplit(true);
+      setCurrentQId("q_sle_vs_see_1");
+    } else if (topType === "SEE" && isSelfENTJ && !hasSeenSleSplit) {
       setHasSeenSleSplit(true);
       setCurrentQId("q_sle_vs_see_1");
     } else if (["LIE", "LSE"].includes(topType) && !hasSeenTeSeSplit) {

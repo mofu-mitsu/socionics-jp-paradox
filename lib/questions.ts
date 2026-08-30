@@ -1366,7 +1366,7 @@ export const QUESTIONS: Record<string, Question> = {
           suggestive: { Fi: 1.5 }, // 5: 暗示 (Fi)
           activating: { Se: 1.5, Ne: 1.5 }, // 6: 活性 (Se/Ne)
           ignoring: { Ti: 1.5 }, // 7: 制限 (Ti)
-          demonstrative: { Ne: 1.5, Se: 1.5 }, // 8: 実証 (Ne/Se)
+          demonstrative: { Ne: 1.5, Se: 1.5, Te: 1.5 }, // 8: 実証 (Ne/Se)
         },
         jpDelta: { j: 2.0, p: 0 },
         nextId: "q_lie_lse_deep", // ← LIE vs LSE 深掘りへ！
@@ -1499,7 +1499,7 @@ export const QUESTIONS: Record<string, Question> = {
           creative: { Ni: 2.5 },
           vulnerable: { Si: 2.0 },
           activating: { Se: 1.5 },
-          demonstrative: { Ne: 1.5 },
+          demonstrative: { Ne: 1.5, Te: 1.5 },
         },
         jpDelta: { j: 2.0, p: 0.5 },
         nextId: "q_dislike_type",
@@ -1513,7 +1513,7 @@ export const QUESTIONS: Record<string, Question> = {
           creative: { Si: 2.5 },
           vulnerable: { Ni: 2.0 },
           activating: { Ne: 1.5 },
-          demonstrative: { Se: 1.5 },
+          demonstrative: { Se: 1.5, Te: 1.5 },
         },
         jpDelta: { j: 2.5, p: 0 },
         nextId: "q_dislike_type",
@@ -1597,7 +1597,7 @@ export const QUESTIONS: Record<string, Question> = {
           suggestive: { Fi: 1.5 }, // 5: 判断 (Fi)
           activating: { Se: 1.5, Ne: 1.5 }, // 6: 知覚 (Se/Ne) ←両方加点！
           ignoring: { Ti: 1.5 }, // 7: 判断 (Ti)
-          demonstrative: { Ne: 1.5, Se: 1.5 }, // 8: 知覚 (Ne/Se) ←両方加点！
+          demonstrative: { Ne: 1.5, Se: 1.5, Te: 1.5 }, // 8: 知覚 (Ne/Se) ←両方加点！
         },
         jpDelta: { j: 2.5, p: 0 },
         nextId: "q_thinking_style_5step",
@@ -1789,7 +1789,7 @@ export const QUESTIONS: Record<string, Question> = {
           suggestive: { Fi: 1.5 },
           activating: { Se: 1.0, Ne: 1.0 },
           ignoring: { Ti: 2.0 },
-          demonstrative: { Ne: 2.0, Si: 2.0 },
+          demonstrative: { Ne: 2.0, Si: 2.0 , Te: 2.0},
         },
         jpDelta: { j: 3.0, p: 0 },
         nextId: "q_bureaucracy_response",
@@ -2671,8 +2671,8 @@ export const QUESTIONS: Record<string, Question> = {
         reasonTag: '【SEE】1Se, 2Fi, 3Ne, 4Ti, 5Ni, 6Te, 7Si, 8Fe（Fi創造：演出も己の力）',
         ieDeltas: { Se: 3.0, Fi: 3.0, Ne: 1.0, Ti: -2.0, Ni: 1.5, Te: 2.0, Si: 0.5, Fe: 2.0 },
         positionDeltas: {
-          leading: { Se: 6.0 }, creative: { Fi: 6.0 }, role: { Ne: 3.0 }, vulnerable: { Ti: 4.0 },
-          suggestive: { Ni: 4.5 }, activating: { Te: 3.0 }, ignoring: { Si: 0.5 }, demonstrative: { Fe: 5.0 }
+          leading: { Se: 4.0 }, creative: { Fi: 4.0 }, role: { Ne: 3.0 }, vulnerable: { Ti: 3.0 },
+          suggestive: { Ni: 4.5 }, activating: { Te: 2.0 }, ignoring: { Si: 0.5 }, demonstrative: { Fe: 5.0 }
         },
         jpDelta: { j: 0, p: 2.0 },
         nextId: 'q_sle_vs_see_5'
@@ -2701,8 +2701,8 @@ export const QUESTIONS: Record<string, Question> = {
         reasonTag: '【SEE】1Se, 2Fi, 3Ne, 4Ti, 5Ni, 6Te, 7Si, 8Fe（マウント・立ち回りの誇示）',
         ieDeltas: { Se: 4.0, Fi: 4.0, Ne: 1.0, Ti: -3.0, Ni: 2.0, Te: 3.0, Si: 0.5, Fe: 3.0 },
         positionDeltas: {
-          leading: { Se: 6.0 }, creative: { Fi: 6.0 }, role: { Ne: 3.0 }, vulnerable: { Ti: 4.0 },
-          suggestive: { Ni: 4.5 }, activating: { Te: 3.0 }, ignoring: { Si: 0.5 }, demonstrative: { Fe: 5.0 }
+          leading: { Se: 4.0 }, creative: { Fi: 4.0 }, role: { Ne: 3.0 }, vulnerable: { Ti: 3.0 },
+          suggestive: { Ni: 4.5 }, activating: { Te: 2.0 }, ignoring: { Si: 0.5 }, demonstrative: { Fe: 5.0 }
         },
         jpDelta: { j: 0, p: 3.0 },
         nextId: 'result'
